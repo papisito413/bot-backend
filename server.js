@@ -1,5 +1,4 @@
-﻿// server.js — Backend TicketBot (admin + clientes + bots + JSON storage)
-console.log("BOOT SERVER.JS — iniciando backend...");
+// server.js — Backend TicketBot (admin + clientes + bots + JSON storage)
 
 import express from "express";
 import cors from "cors";
@@ -16,14 +15,17 @@ const __dirname  = path.dirname(__filename);
 
 // ===== .env =====
 dotenv.config({ path: path.join(__dirname, ".env") });
-console.log("ENV.PORT =", process.env.PORT);
-console.log("ENV.ADMIN_USER =", process.env.ADMIN_USER);
-console.log("ENV.BASE_URL =", process.env.BASE_URL);
 
 // ===== App =====
 const app = express();
 app.use(express.json({ limit: "2mb" }));
-app.use(cors({ origin: (process.env.BASE_URL || "*").split(","), credentials: false }));
+
+// CORS: admite múltiples orígenes separados por coma (útil para Netlify/Render/local)
+const ORIGINS = (process.env.BASE_URL || "*").split(",").map(s => s.trim());
+app.use(cors({ origin: (origin, cb) => {
+  if (!origin || ORIGINS.includes("*") || ORIGINS.includes(origin)) return cb(null, true);
+  return cb(null, false);
+}}));
 
 // Log simple
 app.use((req, _res, next) => { console.log("➡️", req.method, req.url); next(); });
@@ -61,15 +63,10 @@ const cfgFile        = "guild_configs.json";   // { [guildId]: config }
 const publishFile    = "publish_flags.json";   // { [guildId]: { requestedAt, byUser } }
 
 // ===== Helpers =====
-function safeBotView(b) {
-  const { token, ...rest } = b || {};
-  return rest;
-}
+function safeBotView(b) { const { token, ...rest } = b || {}; return rest; }
 function findUserByUsername(username) {
-  const users = readJSON(usersFile, []);
-  return users.find(u => u.username === username) || null;
+  const users = readJSON(usersFile, []); return users.find(u => u.username === username) || null;
 }
-
 function auth(req, res, next) {
   try {
     const h = req.headers.authorization || "";
@@ -94,9 +91,7 @@ function ensureOwner(req, res, next) {
     if (!g) return res.status(404).json({ error: "guild no registrado" });
     const b = bots.find(x => x.id === g.botId);
     if (!b) return res.status(404).json({ error: "bot no encontrado" });
-    if (!me.isAdmin && b.ownerUserId !== me.uid) {
-      return res.status(403).json({ error: "no eres dueño de este guild" });
-    }
+    if (!me.isAdmin && b.ownerUserId !== me.uid) return res.status(403).json({ error: "no eres dueño de este guild" });
     next();
   } catch { return res.status(401).json({ error: "invalid token" }); }
 }
@@ -106,8 +101,7 @@ function botAuth(req, res, next) {
   const bots = readJSON(botsFile, []);
   const bot = bots.find(b => b.apiKey === apiKey);
   if (!bot) return res.status(401).json({ error: "invalid api key" });
-  req.bot = bot;
-  next();
+  req.bot = bot; next();
 }
 
 // Publish flags helpers
@@ -119,11 +113,7 @@ function setPublishFlag(guildId, byUser) {
 function consumePublishFlag(guildId) {
   const all = readJSON(publishFile, {});
   const val = all[guildId] || null;
-  if (val) {
-    delete all[guildId];
-    writeJSON(publishFile, all);
-    return { pending: true, info: val };
-  }
+  if (val) { delete all[guildId]; writeJSON(publishFile, all); return { pending: true, info: val }; }
   return { pending: false };
 }
 function peekPublishFlag(guildId) {
@@ -140,57 +130,63 @@ app.get("/health", (_req, res) => res.json({ ok: true, ts: Date.now() }));
   const adminUser = process.env.ADMIN_USER || "admin";
   if (!users.some(u => u.username === adminUser)) {
     const pass = process.env.ADMIN_PASS || "admin123";
-    users.push({
-      id: "admin",
-      username: adminUser,
-      passHash: bcrypt.hashSync(pass, 10),
-      isAdmin: true
-    });
+    users.push({ id: "admin", username: adminUser, passHash: bcrypt.hashSync(pass, 10), isAdmin: true });
     writeJSON(usersFile, users);
     console.log("👑 Usuario admin creado (seed)");
   }
 })();
 
-// ===== Auth (admin) =====
+// ===== Auth (admin y cliente) =====
 app.post("/api/auth/login", (req, res) => {
   const { username, password } = req.body || {};
-  if (username !== process.env.ADMIN_USER || password !== process.env.ADMIN_PASS) {
+  if (username !== process.env.ADMIN_USER || password !== process.env.ADMIN_PASS)
     return res.status(400).json({ error: "usuario o contraseña inválidos" });
-  }
-  const token = jwt.sign(
-    { uid: "admin", username, isAdmin: true },
-    process.env.JWT_SECRET || "secret",
-    { expiresIn: "7d" }
-  );
+  const token = jwt.sign({ uid: "admin", username, isAdmin: true }, process.env.JWT_SECRET || "secret", { expiresIn: "7d" });
   res.json({ token });
 });
-
-// ===== Auth (cliente) =====
 app.post("/api/auth/login_user", (req, res) => {
   const { username, password } = req.body || {};
   const u = findUserByUsername(username);
   if (!u) return res.status(400).json({ error: "usuario o contraseña inválidos" });
-  if (!bcrypt.compareSync(String(password || ""), u.passHash)) {
+  if (!bcrypt.compareSync(String(password || ""), u.passHash))
     return res.status(400).json({ error: "usuario o contraseña inválidos" });
-  }
-  const token = jwt.sign(
-    { uid: u.id, username: u.username, isAdmin: !!u.isAdmin },
-    process.env.JWT_SECRET || "secret",
-    { expiresIn: "7d" }
-  );
+  const token = jwt.sign({ uid: u.id, username: u.username, isAdmin: !!u.isAdmin }, process.env.JWT_SECRET || "secret", { expiresIn: "7d" });
   res.json({ token });
 });
 
-// ===== Admin: usuarios =====
+// ===== Admin: usuarios (CRUD para tabla) =====
+app.get("/api/admin/users", auth, ensureAdmin, (_req, res) => {
+  const users = readJSON(usersFile, []);
+  res.json({ users: users.map(u => ({ id: u.id, username: u.username, isAdmin: !!u.isAdmin })) });
+});
 app.post("/api/admin/users", auth, ensureAdmin, (req, res) => {
   const { username, password, isAdmin = false } = req.body || {};
   if (!username || !password) return res.status(400).json({ error: "username y password requeridos" });
   const users = readJSON(usersFile, []);
   if (users.some(u => u.username === username)) return res.status(400).json({ error: "usuario ya existe" });
   const user = { id: uuidv4(), username, passHash: bcrypt.hashSync(password, 10), isAdmin: !!isAdmin };
-  users.push(user);
-  writeJSON(usersFile, users);
+  users.push(user); writeJSON(usersFile, users);
   res.json({ ok: true, user: { id: user.id, username: user.username, isAdmin: user.isAdmin } });
+});
+app.put("/api/admin/users/:id", auth, ensureAdmin, (req, res) => {
+  const { id } = req.params;
+  const { username, password, isAdmin } = req.body || {};
+  const users = readJSON(usersFile, []);
+  const u = users.find(x => x.id === id);
+  if (!u) return res.status(404).json({ error: "no existe usuario" });
+  if (typeof username === "string" && username.trim()) u.username = username.trim();
+  if (typeof isAdmin === "boolean") u.isAdmin = isAdmin;
+  if (typeof password === "string" && password.length) u.passHash = bcrypt.hashSync(password, 10);
+  writeJSON(usersFile, users);
+  res.json({ ok: true, user: { id: u.id, username: u.username, isAdmin: u.isAdmin } });
+});
+app.delete("/api/admin/users/:id", auth, ensureAdmin, (req, res) => {
+  const { id } = req.params;
+  const users = readJSON(usersFile, []);
+  const idx = users.findIndex(x => x.id === id);
+  if (idx === -1) return res.status(404).json({ error: "no existe usuario" });
+  users.splice(idx, 1); writeJSON(usersFile, users);
+  res.json({ ok: true });
 });
 
 // ===== Admin: bots =====
@@ -198,7 +194,6 @@ app.get("/api/admin/bots", auth, ensureAdmin, (_req, res) => {
   const bots = readJSON(botsFile, []).map(safeBotView);
   res.json({ bots });
 });
-
 app.post("/api/admin/bots", auth, ensureAdmin, (req, res) => {
   const { name, discordAppId, token } = req.body || {};
   if (!name) return res.status(400).json({ error: "name requerido" });
@@ -211,32 +206,23 @@ app.post("/api/admin/bots", auth, ensureAdmin, (req, res) => {
     discordAppId: discordAppId || null,
     ...(token ? { token } : {})
   };
-  bots.push(bot);
-  writeJSON(botsFile, bots);
+  bots.push(bot); writeJSON(botsFile, bots);
   res.json({ ok: true, bot: safeBotView(bot) });
 });
-
 app.put("/api/admin/bots/:botId/owner", auth, ensureAdmin, (req, res) => {
-  const { botId } = req.params;
-  const { ownerUserId } = req.body || {};
-  const bots = readJSON(botsFile, []);
-  const b = bots.find(x => x.id === botId);
+  const { botId } = req.params; const { ownerUserId } = req.body || {};
+  const bots = readJSON(botsFile, []); const b = bots.find(x => x.id === botId);
   if (!b) return res.status(404).json({ error: "no existe bot" });
-  b.ownerUserId = ownerUserId || null;
-  writeJSON(botsFile, bots);
+  b.ownerUserId = ownerUserId || null; writeJSON(botsFile, bots);
   res.json({ ok: true, bot: safeBotView(b) });
 });
-
 app.put("/api/admin/bots/:botId/secret", auth, ensureAdmin, (req, res) => {
-  const { botId } = req.params;
-  const { token, discordAppId } = req.body || {};
-  const bots = readJSON(botsFile, []);
-  const b = bots.find(x => x.id === botId);
+  const { botId } = req.params; const { token, discordAppId } = req.body || {};
+  const bots = readJSON(botsFile, []); const b = bots.find(x => x.id === botId);
   if (!b) return res.status(404).json({ error: "no existe bot" });
   if (typeof token === "string") b.token = token;
   if (typeof discordAppId === "string") b.discordAppId = discordAppId;
-  writeJSON(botsFile, bots);
-  res.json({ ok: true });
+  writeJSON(botsFile, bots); res.json({ ok: true });
 });
 
 // ===== Cliente: ver sus bots / guilds =====
@@ -246,7 +232,6 @@ app.get("/api/me/bots", auth, (req, res) => {
   const mine = me.isAdmin ? bots : bots.filter(b => b.ownerUserId === me.uid);
   res.json({ bots: mine });
 });
-
 app.get("/api/me/guilds", auth, (req, res) => {
   const me = req.user;
   const bots = readJSON(botsFile, []);
@@ -255,7 +240,6 @@ app.get("/api/me/guilds", auth, (req, res) => {
   const mineGuilds = guilds.filter(g => myBotIds.includes(g.botId));
   res.json({ guilds: mineGuilds });
 });
-
 app.post("/api/me/guilds/claim", auth, (req, res) => {
   const { botId, guildId, name, icon } = req.body || {};
   if (!botId || !guildId) return res.status(400).json({ error: "botId y guildId requeridos" });
@@ -263,9 +247,7 @@ app.post("/api/me/guilds/claim", auth, (req, res) => {
   const bots = readJSON(botsFile, []);
   const b = bots.find(x => x.id === botId);
   if (!b) return res.status(404).json({ error: "bot no existe" });
-  if (!req.user.isAdmin && b.ownerUserId !== req.user.uid) {
-    return res.status(403).json({ error: "no eres dueño de ese bot" });
-  }
+  if (!req.user.isAdmin && b.ownerUserId !== req.user.uid) return res.status(403).json({ error: "no eres dueño de ese bot" });
 
   const guilds = readJSON(guildsFile, []);
   let g = guilds.find(x => x.guildId === guildId);
@@ -282,7 +264,7 @@ app.post("/api/me/guilds/claim", auth, (req, res) => {
   res.json({ ok: true, guild: g });
 });
 
-// ===== BOT: register + subir roles/canales + leer config =====
+// ===== BOT: register + subir roles/canales + leer config + publish poll =====
 app.post("/api/bot/register", botAuth, (req, res) => {
   const { guildId, guildName, icon } = req.body || {};
   if (!guildId) return res.status(400).json({ error: "guildId requerido" });
@@ -301,32 +283,22 @@ app.post("/api/bot/register", botAuth, (req, res) => {
   writeJSON(guildsFile, guilds);
   res.json({ ok: true });
 });
-
 app.post("/api/guilds/:guildId/roles", botAuth, (req, res) => {
   const { roles } = req.body || {};
   if (!Array.isArray(roles)) return res.status(400).json({ error: "roles[] requerido" });
-  const all = readJSON(rolesFile, {});
-  all[req.params.guildId] = roles;
-  writeJSON(rolesFile, all);
+  const all = readJSON(rolesFile, {}); all[req.params.guildId] = roles; writeJSON(rolesFile, all);
   res.json({ ok: true });
 });
-
 app.post("/api/guilds/:guildId/channels", botAuth, (req, res) => {
   const { channels } = req.body || {};
   if (!Array.isArray(channels)) return res.status(400).json({ error: "channels[] requerido" });
-  const all = readJSON(channelsFile, {});
-  all[req.params.guildId] = channels;
-  writeJSON(channelsFile, all);
+  const all = readJSON(channelsFile, {}); all[req.params.guildId] = channels; writeJSON(channelsFile, all);
   res.json({ ok: true });
 });
-
-// Bot lee config (con x-api-key)
 app.get("/api/bot/guilds/:guildId/config", botAuth, (req, res) => {
   const cfgs = readJSON(cfgFile, {});
   res.json(cfgs[req.params.guildId] || defaultConfig());
 });
-
-// Bot: consultar/consumir señal de publicación
 app.get("/api/bot/guilds/:guildId/publish", botAuth, (req, res) => {
   const guildId = req.params.guildId;
   const consume = String(req.query.consume || "0") === "1";
@@ -334,34 +306,37 @@ app.get("/api/bot/guilds/:guildId/publish", botAuth, (req, res) => {
   res.json(out);
 });
 
-// ===== Panel cliente: roles, canales y config (solo dueño o admin) =====
+// ===== Panel cliente: roles, canales y config (dueño o admin) =====
 app.get("/api/guilds/:guildId/roles", auth, ensureOwner, (req, res) => {
-  const all = readJSON(rolesFile, {});
-  res.json({ roles: all[req.params.guildId] || [] });
+  const all = readJSON(rolesFile, {}); res.json({ roles: all[req.params.guildId] || [] });
 });
-
 app.get("/api/guilds/:guildId/channels", auth, ensureOwner, (req, res) => {
-  const all = readJSON(channelsFile, {});
-  res.json({ channels: all[req.params.guildId] || [] });
+  const all = readJSON(channelsFile, {}); res.json({ channels: all[req.params.guildId] || [] });
 });
-
 app.get("/api/guilds/:guildId/config", auth, ensureOwner, (req, res) => {
-  const cfgs = readJSON(cfgFile, {});
-  res.json(cfgs[req.params.guildId] || defaultConfig());
+  const cfgs = readJSON(cfgFile, {}); res.json(cfgs[req.params.guildId] || defaultConfig());
 });
-
 app.put("/api/guilds/:guildId/config", auth, ensureOwner, (req, res) => {
-  const cfgs = readJSON(cfgFile, {});
-  cfgs[req.params.guildId] = req.body || {};
-  writeJSON(cfgFile, cfgs);
+  const cfgs = readJSON(cfgFile, {}); cfgs[req.params.guildId] = req.body || {}; writeJSON(cfgFile, cfgs);
   res.json({ ok: true });
 });
-
-// Panel: solicitar publicación del panel
 app.post("/api/guilds/:guildId/publish", auth, ensureOwner, (req, res) => {
-  const guildId = req.params.guildId;
-  setPublishFlag(guildId, req.user?.username || null);
+  const guildId = req.params.guildId; setPublishFlag(guildId, req.user?.username || null);
   res.json({ ok: true, requestedAt: Date.now() });
+});
+
+// ===== Admin: export rápido (backup JSON) =====
+app.get("/api/admin/export", auth, ensureAdmin, (_req, res) => {
+  const payload = {
+    users: readJSON(usersFile, []),
+    bots: readJSON(botsFile, []),
+    guilds: readJSON(guildsFile, []),
+    roles: readJSON(rolesFile, {}),
+    channels: readJSON(channelsFile, {}),
+    configs: readJSON(cfgFile, {}),
+    publish_flags: readJSON(publishFile, {})
+  };
+  res.json(payload);
 });
 
 // ===== Default config =====
@@ -374,10 +349,10 @@ function defaultConfig() {
       title: "Panel de Tickets",
       layout: "list"
     },
-    channels: {               // IDs configurables desde la web
-      panelChannelId: null,   // canal donde se publica el panel
-      logChannelId: null,     // canal para transcripts/logs
-      ratingsChannelId: null  // canal donde se publican las valoraciones
+    channels: {
+      panelChannelId: null,
+      logChannelId: null,
+      ratingsChannelId: null
     },
     buttons: [
       { id: "ticket_general", title: "Soporte General", subtitle: "Ayuda en general.", label: "💬 Soporte", emoji: "💬", order: 1, visible: true }
@@ -403,7 +378,7 @@ function defaultConfig() {
 
 // ===== 404 =====
 app.use((req, res) => {
-  console.log("⛔ 404 para:", req.method, req.url);
+  console.log("⛔ 404:", req.method, req.url);
   res.status(404).send("Not found: " + req.method + " " + req.url);
 });
 
@@ -413,7 +388,4 @@ process.on("uncaughtException",  e => console.error("uncaughtException:", e));
 
 // ===== Start =====
 const PORT = Number(process.env.PORT ?? 3001) || 3001;
-const server = app.listen(PORT, () => {
-  console.log(`🚀 Backend escuchando en http://localhost:${PORT}`);
-});
-server.on("error", (err) => console.error("❌ Error al iniciar servidor:", err));
+app.listen(PORT, () => console.log(`🚀 Backend escuchando en http://localhost:${PORT}`));
