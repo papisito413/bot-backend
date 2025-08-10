@@ -1,12 +1,8 @@
-// service.js — SDK del panel (browser-safe)
-// Resuelve BASE_URL desde ?api=, localStorage, window.ENV_API_BASE_URL o fallback.
-
 let BASE_URL = null;
 let ADMIN_TOKEN = null;
 
 const hasLS = typeof window !== "undefined" && "localStorage" in window;
 
-// ---------- BASE URL RESOLVER ----------
 function getApiFromQuery() {
   try {
     const u = new URL(window.location.href);
@@ -24,7 +20,7 @@ function getApiFromEnvJs() {
     ? String(window.ENV_API_BASE_URL).replace(/\/+$/, "")
     : null;
 }
-const DEFAULT_API_FALLBACK = "http://localhost:3001"; // ← cambia si ya está en Render
+const DEFAULT_API_FALLBACK = "http://localhost:3001";
 
 function resolveBaseUrl() {
   return (
@@ -36,11 +32,11 @@ function resolveBaseUrl() {
 }
 BASE_URL = resolveBaseUrl();
 
-// ---------- AUTH STORAGE ----------
 if (hasLS) {
   const t = localStorage.getItem("ADMIN_TOKEN");
   if (t) ADMIN_TOKEN = t;
 }
+
 export function setBaseUrl(url) {
   BASE_URL = String(url || "").replace(/\/+$/, "");
   if (hasLS) localStorage.setItem("API_BASE_URL", BASE_URL);
@@ -59,13 +55,11 @@ export function clearAll() {
   if (hasLS) localStorage.removeItem("API_BASE_URL");
 }
 
-// ---------- HTTP ----------
 async function request(path, { method = "GET", body, token = ADMIN_TOKEN, apiKey } = {}) {
   const url = `${BASE_URL}${path}`;
   const headers = { "Content-Type": "application/json" };
   if (token) headers["Authorization"] = `Bearer ${token}`;
-  if (apiKey) headers["x-api-key"]    = apiKey;
-
+  if (apiKey) headers["x-api-key"] = apiKey;
   const res = await fetch(url, { method, headers, body: body ? JSON.stringify(body) : undefined });
   const text = await res.text();
   let data; try { data = text ? JSON.parse(text) : null; } catch { data = text; }
@@ -76,10 +70,8 @@ async function request(path, { method = "GET", body, token = ADMIN_TOKEN, apiKey
   return data;
 }
 
-// ---------- HEALTH ----------
 export function health() { return request("/health", { token: null }); }
 
-// ---------- AUTH ----------
 export async function login(username, password) {
   const data = await request("/api/auth/login", { method: "POST", body: { username, password }, token: null });
   if (data?.token) setToken(data.token);
@@ -95,7 +87,6 @@ export async function loginAndSetToken(username, password) {
   return token;
 }
 
-// ---------- ADMIN: usuarios (tabla) ----------
 export function adminListUsers(token = ADMIN_TOKEN) {
   return request("/api/admin/users", { method: "GET", token });
 }
@@ -109,7 +100,6 @@ export function adminDeleteUser(id, token = ADMIN_TOKEN) {
   return request(`/api/admin/users/${id}`, { method: "DELETE", token });
 }
 
-// ---------- ADMIN: bots ----------
 export function listBots(token = ADMIN_TOKEN) {
   return request("/api/admin/bots", { method: "GET", token });
 }
@@ -123,17 +113,15 @@ export function setBotSecret(botId, { token, discordAppId }, admToken = ADMIN_TO
   return request(`/api/admin/bots/${botId}/secret`, { method: "PUT", token: admToken, body: { token, discordAppId } });
 }
 
-// ---------- CLIENTE: “mis bots y guilds” ----------
 export function meBots(token = ADMIN_TOKEN)  { return request("/api/me/bots",  { method: "GET", token }); }
 export function meGuilds(token = ADMIN_TOKEN){ return request("/api/me/guilds",{ method: "GET", token }); }
 export function claimGuild({ botId, guildId, name, icon }, token = ADMIN_TOKEN) {
   return request("/api/me/guilds/claim", { method: "POST", token, body: { botId, guildId, name, icon } });
 }
 
-// ---------- PANEL: roles/canales/config ----------
-export function getGuildRoles(guildId,   token = ADMIN_TOKEN) { return request(`/api/guilds/${guildId}/roles`,   { method: "GET", token }); }
-export function getGuildChannels(guildId,token = ADMIN_TOKEN) { return request(`/api/guilds/${guildId}/channels`,{ method: "GET", token }); }
-export function getGuildConfig(guildId,  token = ADMIN_TOKEN) { return request(`/api/guilds/${guildId}/config`,  { method: "GET", token }); }
+export function getGuildRoles(guildId, token = ADMIN_TOKEN)   { return request(`/api/guilds/${guildId}/roles`,   { method: "GET", token }); }
+export function getGuildChannels(guildId, token = ADMIN_TOKEN){ return request(`/api/guilds/${guildId}/channels`,{ method: "GET", token }); }
+export function getGuildConfig(guildId, token = ADMIN_TOKEN)  { return request(`/api/guilds/${guildId}/config`,  { method: "GET", token }); }
 export function saveGuildConfig(guildId, config, token = ADMIN_TOKEN) {
   return request(`/api/guilds/${guildId}/config`, { method: "PUT", token, body: config });
 }
@@ -141,7 +129,6 @@ export function publishGuildPanel(guildId, token = ADMIN_TOKEN) {
   return request(`/api/guilds/${guildId}/publish`, { method: "POST", token });
 }
 
-// ---------- BOT (x-api-key) ----------
 export function botRegister({ apiKey, guildId, guildName, icon }) {
   return request("/api/bot/register", { method: "POST", token: null, apiKey, body: { guildId, guildName, icon } });
 }
@@ -159,7 +146,21 @@ export function botPollPublish({ apiKey, guildId, consume = false }) {
   return request(`/api/bot/guilds/${guildId}/publish${q}`, { method: "GET", token: null, apiKey });
 }
 
-// ---------- ADMIN: export (backup rápido) ----------
+export function adminTables(token = ADMIN_TOKEN) {
+  return request("/api/admin/tables", { method: "GET", token });
+}
+export function adminDeleteBot(botId, token = ADMIN_TOKEN) {
+  return request(`/api/admin/bots/${botId}`, { method: "DELETE", token });
+}
+export function adminDeleteGuild(guildId, token = ADMIN_TOKEN) {
+  return request(`/api/admin/guilds/${guildId}`, { method: "DELETE", token });
+}
+export function adminExport(token = ADMIN_TOKEN) {
+  return request("/api/admin/export", { method: "GET", token });
+}
+export function adminImport(json, token = ADMIN_TOKEN) {
+  return request("/api/admin/import", { method: "POST", token, body: json });
+}
 export function adminExportAll(token = ADMIN_TOKEN) {
   return request("/api/admin/export", { method: "GET", token });
 }
