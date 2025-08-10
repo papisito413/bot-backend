@@ -1,1015 +1,1296 @@
 <!doctype html>
 <html lang="es">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>TicketBot • Dashboard</title>
-<style>
-  :root{
-    --bg:#0b0c10; --card:#12141b; --muted:#8b93a7; --text:#e7e9ef;
-    --accent:#6e57ff; --good:#3ac279; --warn:#ffb020; --bad:#ff5d5d;
-    --ring: rgba(110,87,255,.35);
-  }
-  *{box-sizing:border-box}
-  html,body{height:100%}
-  body{margin:0;background:linear-gradient(180deg,#0b0c10 0%,#0d0f17 100%);color:var(--text);font:13px/1.35 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial}
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>TicketBot • Dashboard</title>
+  <style>
+    :root{
+      --bg:#0b0c10; --card:#12141b; --muted:#8b93a7; --text:#e7e9ef;
+      --accent:#6e57ff; --good:#3ac279; --warn:#ffb020; --bad:#ff5d5d;
+      --ring: rgba(110,87,255,.35);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;background:linear-gradient(180deg,#0b0c10 0%,#0d0f17 100%);color:var(--text);font:13px/1.35 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial}
 
-  /* Layout */
-  .wrap{max-width:1200px;margin:18px auto;padding:0 14px}
-  header{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-bottom:14px}
-  .brand{display:flex;align-items:center;gap:10px}
-  .brand .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 18px var(--accent)}
-  h1{margin:0;font-size:18px;font-weight:800;letter-spacing:.3px}
-  .top-right{display:flex;gap:8px;align-items:center}
+    .wrap{max-width:1200px;margin:18px auto;padding:0 14px}
+    header{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-bottom:14px}
+    .brand{display:flex;align-items:center;gap:10px}
+    .brand .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 18px var(--accent)}
+    h1{margin:0;font-size:18px;font-weight:800;letter-spacing:.3px}
+    .top-right{display:flex;gap:8px;align-items:center}
 
-  /* Pills & buttons */
-  .pill{padding:6px 9px;border-radius:999px;background:#0f1220;border:1px solid #1a1e2e;color:#cbd3ea}
-  .pill.badge{background:#101427}
-  .btn{appearance:none;border:1px solid #232842;background:#161a2e;color:#dfe5ff;border-radius:10px;padding:9px 10px;font-weight:700;cursor:pointer}
-  .btn:hover{border-color:#2d355c}
-  .btn.acc{background:linear-gradient(180deg,#6e57ff 0%,#5a46e6 100%);border-color:#6e57ff;color:white}
-  .btn.good{background:linear-gradient(180deg,#34c27c,#2aa565);border-color:#34c27c;color:white}
-  .btn.bad{background:#2a1216;border-color:#54242b;color:#ffcbcb}
-  .btn.small{padding:6px 8px;font-size:12px}
-  .hint{color:var(--muted);font-size:11px}
-  .hint.right{margin-left:auto}
+    .pill{padding:6px 9px;border-radius:999px;background:#0f1220;border:1px solid #1a1e2e;color:#cbd3ea}
+    .pill.badge{background:#101427}
+    .btn{appearance:none;border:1px solid #232842;background:#161a2e;color:#dfe5ff;border-radius:10px;padding:9px 10px;font-weight:700;cursor:pointer}
+    .btn:hover{border-color:#2d355c}
+    .btn.acc{background:linear-gradient(180deg,#6e57ff 0%,#5a46e6 100%);border-color:#6e57ff;color:white}
+    .btn.good{background:linear-gradient(180deg,#34c27c,#2aa565);border-color:#34c27c;color:white}
+    .btn.bad{background:#2a1216;border-color:#54242b;color:#ffcbcb}
+    .btn.small{padding:6px 8px;font-size:12px}
+    .hint{color:var(--muted);font-size:11px}
+    .hint.right{margin-left:auto}
 
-  /* Cards & grids */
-  .card{background:rgba(18,20,27,.88);border:1px solid #24283a;border-radius:14px;padding:12px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
-  .grid{display:grid;gap:10px}
-  .g2{grid-template-columns:1.05fr .95fr}
-  .g2-50{grid-template-columns:1fr 1fr}
-  .g3{grid-template-columns:repeat(3,1fr)}
-  @media (max-width:1100px){.g2,.g2-50,.g3{grid-template-columns:1fr}}
+    .card{background:rgba(18,20,27,.88);border:1px solid #24283a;border-radius:14px;padding:12px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+    .grid{display:grid;gap:10px}
+    .g2{grid-template-columns:1.05fr .95fr}
+    .g2-50{grid-template-columns:1fr 1fr}
+    .g3{grid-template-columns:repeat(3,1fr)}
+    @media (max-width:1100px){.g2,.g2-50,.g3{grid-template-columns:1fr}}
 
-  label{display:block;margin:6px 0 5px;color:#b6bfd6;font-size:11px}
-  input,select,textarea{
-    width:100%;padding:9px 10px;border-radius:10px;border:1px solid #22273a;background:#0f1220;color:#e7e9ef;
-    outline:none;box-shadow:0 0 0 0 transparent;transition:.2s border,.2s box-shadow
-  }
-  input:focus,select:focus,textarea:focus{border-color:#36407a;box-shadow:0 0 0 6px var(--ring)}
-  textarea{min-height:84px;resize:vertical}
-  .row{display:flex;gap:8px;align-items:center}
-  .section-title{display:flex;align-items:center;gap:8px;margin-bottom:8px}
-  h2{margin:0;font-size:15px}
-  .hidden{display:none !important}
-  .mono{font-family:ui-monospace,Menlo,Consolas,monospace}
-  .hr{height:1px;background:#22263a;margin:10px 0}
-  .kbd{padding:2px 6px;border-radius:6px;border:1px solid #2c345a;background:#12162b;color:#dbe0ff;font-size:11px}
+    label{display:block;margin:6px 0 5px;color:#b6bfd6;font-size:11px}
+    input,select,textarea{
+      width:100%;padding:9px 10px;border-radius:10px;border:1px solid #22273a;background:#0f1220;color:#e7e9ef;
+      outline:none;box-shadow:0 0 0 0 transparent;transition:.2s border,.2s box-shadow
+    }
+    input:focus,select:focus,textarea:focus{border-color:#36407a;box-shadow:0 0 0 6px var(--ring)}
+    textarea{min-height:84px;resize:vertical}
+    .row{display:flex;gap:8px;align-items:center}
+    .section-title{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+    h2{margin:0;font-size:15px}
+    .hidden{display:none !important}
+    .mono{font-family:ui-monospace,Menlo,Consolas,monospace}
+    .hr{height:1px;background:#22263a;margin:10px 0}
+    .kbd{padding:2px 6px;border-radius:6px;border:1px solid #2c345a;background:#12162b;color:#dbe0ff;font-size:11px}
 
-  /* Tabs */
-  .tabs{display:flex;gap:8px;margin-bottom:10px}
-  .tab{flex:0 0 auto;padding:8px 12px;border-radius:10px;border:1px solid #252a3f;background:#12162b;color:#cfd6ff;cursor:pointer;font-weight:700}
-  .tab.active{background:linear-gradient(180deg,#6e57ff,#4e3fe1);border-color:#6e57ff;color:#fff}
-  .tabs.locked .tab{opacity:.5;pointer-events:none;filter:grayscale(1);cursor:not-allowed}
+    .tabs{display:flex;gap:8px;margin-bottom:10px}
+    .tab{flex:0 0 auto;padding:8px 12px;border-radius:10px;border:1px solid #252a3f;background:#12162b;color:#cfd6ff;cursor:pointer;font-weight:700}
+    .tab.active{background:linear-gradient(180deg,#6e57ff,#4e3fe1);border-color:#6e57ff;color:#fff}
+    .tabs.locked .tab{opacity:.5;pointer-events:none;filter:grayscale(1);cursor:not-allowed}
 
-  /* Lists */
-  .list{height:148px;overflow:auto;border:1px dashed #28304d;border-radius:10px;padding:8px;background:#0d1020}
-  .list .item{display:flex;justify-content:space-between;align-items:center;padding:6px 8px;border-radius:8px;cursor:grab}
-  .list .item:hover{background:#131841}
-  .dragging{opacity:.55}
+    .list{height:148px;overflow:auto;border:1px dashed #28304d;border-radius:10px;padding:8px;background:#0d1020}
+    .list .item{display:flex;justify-content:space-between;align-items:center;padding:6px 8px;border-radius:8px;cursor:grab}
+    .list .item:hover{background:#131841}
+    .dragging{opacity:.55}
 
-  .welcome{
-    background:linear-gradient(135deg,rgba(110,87,255,.15),rgba(58,194,121,.1));
-    border:1px solid #2a2f4b;border-radius:12px;padding:9px 10px;display:flex;justify-content:space-between;gap:10px;align-items:center
-  }
-  .titlebar{display:flex;align-items:center;gap:10px}
-  .titlebar .avatar{width:26px;height:26px;border-radius:50%;background:#1a1e2e;display:inline-flex;align-items:center;justify-content:center}
-  .subtitle{font-size:11px;color:#aeb6d3}
-  .footnote{font-size:11px;color:#aeb6d3;margin-top:6px}
+    .welcome{
+      background:linear-gradient(135deg,rgba(110,87,255,.15),rgba(58,194,121,.1));
+      border:1px solid #2a2f4b;border-radius:12px;padding:9px 10px;display:flex;justify-content:space-between;gap:10px;align-items:center
+    }
+    .titlebar{display:flex;align-items:center;gap:10px}
+    .titlebar .avatar{width:26px;height:26px;border-radius:50%;background:#1a1e2e;display:inline-flex;align-items:center;justify-content:center}
+    .subtitle{font-size:11px;color:#aeb6d3}
+    .footnote{font-size:11px;color:#aeb6d3;margin-top:6px}
 
-  /* Color pickers row */
-  .colorrow{display:grid;grid-template-columns:1fr auto;gap:8px}
-  .colorcell{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center}
-  .colorcell input[type=color]{width:40px;height:30px;border:none;background:transparent;padding:0}
+    .colorrow{display:grid;grid-template-columns:1fr auto;gap:8px}
+    .colorcell{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center}
+    .colorcell input[type=color]{width:40px;height:30px;border:none;background:transparent;padding:0}
 
-  /* PREVIEW (sin imagen) — con CSS vars */
-  #livePreview { padding: 0; }
-  .pv-wrap{background:var(--pv-bg,#0f0f10);color:var(--pv-text,#fff);border:1px solid #24283a;border-radius:12px;overflow:hidden}
-  .pv-sections{padding:10px}
-  .pv-row{display:flex;align-items:center;justify-content:space-between;padding:9px;border-radius:10px;border:1px solid #262b44;background:rgba(18,18,28,.5)}
-  .pv-row+.pv-row{margin-top:6px}
-  .pv-info{display:flex;gap:10px;align-items:flex-start}
-  .pv-emoji{font-size:18px;line-height:22px}
-  .pv-h{font-weight:800;font-size:13px}
-  .pv-sub{font-size:11px;opacity:.82}
-  .pv-btn{background:var(--pv-accent,#6e57ff);border:0;color:#fff;border-radius:9px;padding:7px 10px;font-weight:800;cursor:pointer}
-  .pv-btn:hover{opacity:.95}
+    #livePreview { padding: 0; }
+    .pv-wrap{background:var(--pv-bg,#0f0f10);color:var(--pv-text,#fff);border:1px solid #24283a;border-radius:12px;overflow:hidden}
+    .pv-sections{padding:10px}
+    .pv-row{display:flex;align-items:center;justify-content:space-between;padding:9px;border-radius:10px;border:1px solid #262b44;background:rgba(18,18,28,.5)}
+    .pv-row+.pv-row{margin-top:6px}
+    .pv-info{display:flex;gap:10px;align-items:flex-start}
+    .pv-emoji{font-size:18px;line-height:22px}
+    .pv-h{font-weight:800;font-size:13px}
+    .pv-sub{font-size:11px;opacity:.82}
+    .pv-btn{background:var(--pv-accent,#6e57ff);border:0;color:#fff;border-radius:9px;padding:7px 10px;font-weight:800;cursor:pointer}
+    .pv-btn:hover{opacity:.95}
 
-  /* PREVIEW FORM */
-  #formPreview .field{border:1px solid #262b44;background:#121528;border-radius:10px;padding:8px}
-  #formPreview .field+.field{margin-top:6px}
-  #formPreview .flabel{font-size:11px;color:#bfc7e9;margin-bottom:4px}
-  #formPreview .finput{height:28px;border-radius:8px;border:1px solid #2b3050;background:#0f1220;color:#e7e9ef;padding:6px 8px}
-  #formPreview .ftextarea{min-height:64px;border-radius:8px;border:1px solid #2b3050;background:#0f1220;color:#e7e9ef;padding:6px 8px}
+    #formPreview .field{border:1px solid #262b44;background:#121528;border-radius:10px;padding:8px}
+    #formPreview .field+.field{margin-top:6px}
+    #formPreview .flabel{font-size:11px;color:#bfc7e9;margin-bottom:4px}
+    #formPreview .finput{height:28px;border-radius:8px;border:1px solid #2b3050;background:#0f1220;color:#e7e9ef;padding:6px 8px}
+    #formPreview .ftextarea{min-height:64px;border-radius:8px;border:1px solid #2b3050;background:#0f1220;color:#e7e9ef;padding:6px 8px}
 
-  /* Toasts */
-  #toasts{position:fixed;right:16px;bottom:16px;display:flex;flex-direction:column;gap:8px;z-index:50}
-  .toast{background:#0f1220;border:1px solid #283055;color:#e7e9ef;border-radius:10px;padding:8px 10px;opacity:0;transform:translateY(6px);transition:.25s}
-  .toast.ok{border-color:#2f915d}
-  .toast.err{border-color:#a44}
+    #toasts{position:fixed;right:16px;bottom:16px;display:flex;flex-direction:column;gap:8px;z-index:50}
+    .toast{background:#0f1220;border:1px solid #283055;color:#e7e9ef;border-radius:10px;padding:8px 10px;opacity:0;transform:translateY(6px);transition:.25s}
+    .toast.ok{border-color:#2f915d}
+    .toast.err{border-color:#a44}
 
-  /* LOGIN OVERLAY */
-  .overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:18px;background:radial-gradient(1200px 600px at 50% 20%, rgba(110,87,255,.12), transparent),linear-gradient(180deg,#0b0c10 0%,#0d0f17 100%);z-index:100}
-  .login-card{width:min(440px,92vw);background:rgba(18,20,27,.94);border:1px solid #24283a;border-radius:18px;padding:18px;box-shadow:0 10px 40px rgba(0,0,0,.35)}
-  .login-title{display:flex;align-items:center;gap:10px;margin-bottom:8px}
-  .login-title h1{font-size:20px;margin:0}
-  .seg{display:flex;gap:8px;margin-top:10px}
-  .seg .btn{flex:1}
-</style>
+    .overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:18px;background:radial-gradient(1200px 600px at 50% 20%, rgba(110,87,255,.12), transparent),linear-gradient(180deg,#0b0c10 0%,#0d0f17 100%);z-index:100}
+    .login-card{width:min(440px,92vw);background:rgba(18,20,27,.94);border:1px solid #24283a;border-radius:18px;padding:18px;box-shadow:0 10px 40px rgba(0,0,0,.35)}
+    .login-title{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+    .login-title h1{font-size:20px;margin:0}
+    .seg{display:flex;gap:8px;margin-top:10px}
+    .seg .btn{flex:1}
+
+    table{width:100%;border-collapse:separate;border-spacing:0;margin-top:6px;border:1px solid #24283a;border-radius:10px;overflow:hidden;background:#0d1020}
+    thead tr{background:#12162b}
+    th,td{padding:8px;border-bottom:1px solid #24283a;vertical-align:middle;font-size:12px}
+    tbody tr:hover{background:#131841}
+    td.mono{font-family:ui-monospace,Menlo,Consolas,monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:240px}
+  </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <div class="brand">
-      <div class="dot"></div>
-      <h1>TicketBot • Dashboard</h1>
-    </div>
-    <div class="top-right">
-      <span id="welcomeBadge" class="pill badge hidden">Hola</span>
-      <button id="btnLogout" class="btn small hidden">Cerrar sesión</button>
-    </div>
-  </header>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <div class="dot"></div>
+        <h1>TicketBot • Dashboard</h1>
+      </div>
+      <div class="top-right">
+        <span id="welcomeBadge" class="pill badge hidden">Hola</span>
+        <button id="btnLogout" class="btn small hidden">Cerrar sesión</button>
+      </div>
+    </header>
 
-  <!-- TABS -->
-  <div id="tabsBox" class="tabs locked">
-    <button id="tabBot" class="tab active">Bot</button>
-    <button id="tabAdmin" class="tab">Admin</button>
+    <div id="tabsBox" class="tabs locked">
+      <button id="tabBot" class="tab active">Bot</button>
+      <button id="tabAdmin" class="tab">Admin</button>
+    </div>
+
+    <section id="secWelcome" class="welcome hidden" style="margin-top:12px">
+      <div class="titlebar">
+        <div class="avatar">👋</div>
+        <div>
+          <div id="welcomeTitle"><b>Bienvenido</b></div>
+          <div class="subtitle" id="welcomeSubtitle">El admin enciende el bot. Aquí configuras todo.</div>
+        </div>
+      </div>
+      <div class="row"><span id="roleBadge" class="pill badge">—</span></div>
+    </section>
+
+    <section id="secBotsGuilds" class="card hidden" style="margin-top:12px">
+      <div class="section-title">
+        <h2>Mis Bots / Guilds</h2>
+        <span class="hint right">Elige el servidor a configurar</span>
+      </div>
+      <div class="grid g3">
+        <div>
+          <label>Mis bots</label>
+          <select id="selMyBots"></select>
+        </div>
+        <div>
+          <label>Mis guilds (del bot)</label>
+          <select id="selMyGuilds"></select>
+        </div>
+        <div class="grid g2-50">
+          <div>
+            <label>&nbsp;</label>
+            <button id="btnReloadRoles" class="btn" title="Leer roles del backend">Actualizar roles</button>
+          </div>
+          <div>
+            <label>&nbsp;</label>
+            <button id="btnReloadChannels" class="btn" title="Leer canales del backend">Actualizar canales</button>
+          </div>
+        </div>
+      </div>
+      <div class="footnote">
+        Roles y canales se actualizan cuando el <b>bot está encendido</b> y los envía al backend.
+      </div>
+    </section>
+
+    <section id="viewBot" class="grid g2 hidden" style="margin-top:12px">
+      <div class="card">
+        <div class="section-title">
+          <h2>Editor de Config</h2>
+          <span class="hint right">Branding, canales, roles, botones y formularios</span>
+        </div>
+
+        <div class="grid g3">
+          <div><label>Brand</label><input id="cfg_brand_name" placeholder="Service Bot"></div>
+          <div><label>Icon URL</label><input id="cfg_brand_icon" placeholder="https://..."></div>
+          <div><label>Banner URL</label><input id="cfg_panel_banner" placeholder="https://..."></div>
+        </div>
+
+        <div class="grid g3" style="margin-top:6px">
+          <div class="colorcell">
+            <label>Color BG</label>
+            <input id="cfg_color_bg" value="#0f0f10" />
+            <input id="cfg_color_bg_pick" type="color" />
+          </div>
+          <div class="colorcell">
+            <label>Acento</label>
+            <input id="cfg_color_accent" value="#6e57ff" />
+            <input id="cfg_color_accent_pick" type="color" />
+          </div>
+          <div class="colorcell">
+            <label>Texto</label>
+            <input id="cfg_color_text" value="#ffffff" />
+            <input id="cfg_color_text_pick" type="color" />
+          </div>
+        </div>
+
+        <label style="margin-top:6px">Título del panel</label>
+        <input id="cfg_panel_title" placeholder="Panel de Tickets">
+
+        <div class="grid g3" style="margin-top:8px">
+          <div>
+            <label>Panel Channel</label>
+            <select id="cfg_channel_panel_sel"></select>
+          </div>
+          <div>
+            <label>Log Channel (transcripts)</label>
+            <select id="cfg_channel_log_sel"></select>
+          </div>
+          <div>
+            <label>Ratings Channel (valoraciones)</label>
+            <select id="cfg_channel_ratings_sel"></select>
+          </div>
+        </div>
+
+        <div class="grid g3" style="margin-top:8px">
+          <div><label>Rol Staff</label><select id="cfg_role_staff"></select></div>
+          <div><label>Rol High Staff</label><select id="cfg_role_highstaff"></select></div>
+          <div><label>Rol Buycraft</label><select id="cfg_role_buycraft"></select></div>
+        </div>
+
+        <div class="grid g2-50" style="margin-top:8px">
+          <div><label>Server IP (!ip)</label><input id="cfg_misc_ip" placeholder="Server.net" /></div>
+          <div><label>Tienda URL (!tienda)</label><input id="cfg_misc_store" placeholder="https://tienda.com" /></div>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="row" style="justify-content:space-between">
+          <h3 style="margin:0">Botones del panel</h3>
+          <div class="row">
+            <select id="tpl_buttons" title="Plantillas de botones">
+              <option value="">Plantilla de botón…</option>
+              <option value="general">Soporte general</option>
+              <option value="compras">Soporte compras/Buycraft</option>
+              <option value="reclamos">Reclamos</option>
+              <option value="apelaciones">Apelaciones</option>
+            </select>
+            <button id="btnAddTplButton" class="btn">Agregar</button>
+            <button id="btnNewButton" class="btn">Nuevo botón</button>
+          </div>
+        </div>
+
+        <div class="grid g2-50">
+          <div>
+            <div id="boxButtons" class="list" aria-label="Arrastra para reordenar"></div>
+            <div class="hint" style="margin-top:6px">Drag & drop para ordenar. Selecciona uno para editarlo y sus campos.</div>
+          </div>
+          <div>
+            <label>Título</label><input id="btn_title" placeholder="Soporte general">
+            <label>Subtítulo</label><input id="btn_sub" placeholder="Ayuda en general">
+            <label>Texto del botón</label><input id="btn_label" placeholder="💬 Abrir ticket">
+            <label>Emoji</label><input id="btn_emoji" placeholder="💬">
+            <label>Categoría destino (dónde se crean los tickets)</label>
+            <select id="btn_category_sel"></select>
+            <div class="row" style="margin-top:6px">
+              <label style="margin:0">Visible</label><input id="btn_visible" type="checkbox" checked style="width:auto;margin-left:8px">
+              <span class="hint">ID interno: <span class="mono" id="btn_id_read">—</span></span>
+              <button id="btnSaveButton" class="btn acc" style="margin-left:auto">Guardar botón</button>
+              <button id="btnDelButton" class="btn bad">Eliminar</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="row" style="justify-content:space-between">
+          <h3 style="margin:0">Campos del formulario</h3>
+          <div class="row">
+            <select id="tpl_fields" title="Plantillas de campos">
+              <option value="">Plantilla de campos…</option>
+              <option value="campos_basicos">Usuario + Descripción</option>
+              <option value="compras">Compra: Pedido + Método + Pruebas</option>
+              <option value="reclamo_staff">Reclamo: Staff + Evidencia</option>
+              <option value="apelacion">Apelación: Motivo + Por qué deberían aceptarla</option>
+            </select>
+            <button id="btnAddTplFields" class="btn">Agregar</button>
+            <button id="btnNewField" class="btn">Nuevo campo</button>
+          </div>
+        </div>
+
+        <div class="grid g2-50">
+          <div>
+            <div id="boxFields" class="list" aria-label="Arrastra para reordenar"></div>
+            <div class="hint" style="margin-top:6px">Drag & drop para ordenar campos. Click para editar.</div>
+          </div>
+          <div>
+            <label>Tipo</label>
+            <select id="fld_type">
+              <option value="short">short</option>
+              <option value="paragraph">paragraph</option>
+            </select>
+            <label>Etiqueta (lo que verá el usuario)</label><input id="fld_label" placeholder="¿Nombre de usuario?">
+            <label>Placeholder</label><input id="fld_ph" placeholder="Tu nick">
+            <div class="grid g3">
+              <div>
+                <label>Requerido</label>
+                <select id="fld_req">
+                  <option>true</option>
+                  <option>false</option>
+                </select>
+              </div>
+              <div><label>MaxLen</label><input id="fld_max" value="100"></div>
+              <div style="display:flex;align-items:flex-end">
+                <button id="btnSaveField" class="btn acc" style="width:100%">Guardar campo</button>
+              </div>
+            </div>
+            <button id="btnDelField" class="btn bad" style="margin-top:6px">Eliminar seleccionado</button>
+          </div>
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="row">
+          <button id="btnLoadCfg" class="btn">Cargar config</button>
+          <button id="btnSaveCfg" class="btn acc">Guardar config</button>
+          <button id="btnPublish" class="btn good">Publicar panel</button>
+          <span id="cfgMsg" class="hint right">—</span>
+        </div>
+        <div class="footnote">“Publicar panel” guarda y ordena al bot repintar el panel en Discord.</div>
+      </div>
+
+      <div class="grid g2-50">
+        <div class="card">
+          <div class="section-title">
+            <h2>Vista rápida</h2>
+            <span class="hint right">Resumen</span>
+          </div>
+          <div id="livePreview" class="pv-wrap">
+            <div class="pv-sections">
+              <div class="pv-row">
+                <div class="pv-info">
+                  <div class="pv-emoji">🎟️</div>
+                  <div>
+                    <div class="pv-h">Ejemplo</div>
+                    <div class="pv-sub">Botón de muestra</div>
+                  </div>
+                </div>
+                <button class="pv-btn">Abrir</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section-title">
+            <h2>Vista previa del formulario</h2>
+            <span class="hint right">Del botón activo</span>
+          </div>
+          <div id="formPreview"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="viewAdmin" class="hidden" style="margin-top:12px">
+      <div class="grid g2-50">
+        <div class="card">
+          <div class="section-title">
+            <h2>Usuarios</h2>
+            <span class="hint right">Crear cuentas</span>
+          </div>
+          <label>Usuario</label><input id="adm_u_user" placeholder="cliente01">
+          <label>Contraseña</label><input id="adm_u_pass" type="password" placeholder="••••••">
+          <label>¿Es admin?</label>
+          <select id="adm_u_isadmin">
+            <option value="false">No</option>
+            <option value="true">Sí</option>
+          </select>
+          <div class="row" style="margin-top:8px">
+            <button class="btn good" id="btnAdmCreateUser">Crear usuario</button>
+            <span class="hint right" id="adm_user_msg">—</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section-title">
+            <h2>Bots</h2>
+            <span class="hint right">Crear y asignar dueño</span>
+          </div>
+          <label>Nombre del bot</label><input id="adm_b_name" placeholder="Mi bot">
+          <div class="row" style="margin-top:8px">
+            <button class="btn acc" id="btnAdmCreateBot">Crear bot</button>
+            <button class="btn" id="btnAdmListBots">Listar bots</button>
+          </div>
+
+          <div class="hr"></div>
+
+          <label>Bot</label>
+          <select id="adm_b_sel"></select>
+          <label>Owner userId (ID del usuario cliente)</label>
+          <input id="adm_b_owner" placeholder="uuid del usuario">
+          <div class="row" style="margin-top:8px">
+            <button class="btn" id="btnAdmAssignOwner">Asignar dueño</button>
+            <span class="hint right" id="adm_bot_msg">—</span>
+          </div>
+
+          <div class="hr"></div>
+
+          <div class="small">
+            <b>apiKey del último bot creado:</b>
+            <div id="adm_apiKey_box" class="mono pill" style="margin-top:6px">—</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" id="admDataCard">
+        <div class="section-title">
+          <h2>Datos (usuarios, bots y guilds)</h2>
+          <span class="hint right" id="tablesMsg">—</span>
+        </div>
+
+        <div class="row" style="gap:8px;margin-bottom:8px">
+          <input id="searchTables" placeholder="Buscar en tablas...">
+          <button id="btnReloadTables" class="btn">Recargar</button>
+          <button id="btnExport" class="btn">Exportar JSON</button>
+          <input type="file" id="fileImport" accept=".json" style="max-width:240px">
+        </div>
+
+        <div class="hr"></div>
+
+        <div style="margin-top:8px">
+          <div class="hint">Usuarios</div>
+          <table>
+            <thead>
+              <tr>
+                <th class="mono">id</th>
+                <th>username</th>
+                <th>isAdmin</th>
+                <th>acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tblUsers"></tbody>
+          </table>
+        </div>
+
+        <div style="margin-top:10px">
+          <div class="hint">Bots</div>
+          <table>
+            <thead>
+              <tr>
+                <th class="mono">id</th>
+                <th>name</th>
+                <th class="mono">ownerUserId</th>
+                <th class="mono">apiKey</th>
+                <th>acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tblBots"></tbody>
+          </table>
+        </div>
+
+        <div style="margin-top:10px">
+          <div class="hint">Guilds</div>
+          <table>
+            <thead>
+              <tr>
+                <th class="mono">guildId</th>
+                <th class="mono">botId</th>
+                <th>name</th>
+                <th>acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tblGuilds"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
   </div>
 
-  <!-- BIENVENIDA -->
-  <section id="secWelcome" class="welcome hidden" style="margin-top:12px">
-    <div class="titlebar">
-      <div class="avatar">👋</div>
-      <div>
-        <div id="welcomeTitle"><b>Bienvenido</b></div>
-        <div class="subtitle" id="welcomeSubtitle">El admin enciende el bot. Aquí configuras todo.</div>
+  <div id="loginOverlay" class="overlay">
+    <div class="login-card">
+      <div class="login-title">
+        <div class="dot" style="width:10px;height:10px"></div>
+        <h1>Iniciar sesión</h1>
+      </div>
+      <label>Usuario</label>
+      <input id="loginUser" placeholder="admin" />
+      <label>Contraseña</label>
+      <input id="loginPass" type="password" placeholder="••••••" />
+      <div class="seg">
+        <button id="btnLoginAdmin" class="btn acc">Entrar (ADMIN)</button>
+        <button id="btnLoginClient" class="btn">Entrar (CLIENTE)</button>
+      </div>
+      <div class="hint" style="margin-top:10px">
+        Después de iniciar verás el panel completo. Cierra sesión arriba a la derecha.
       </div>
     </div>
-    <div class="row"><span id="roleBadge" class="pill badge">—</span></div>
-  </section>
+  </div>
 
-  <!-- MIS BOTS / GUILDS -->
-  <section id="secBotsGuilds" class="card hidden" style="margin-top:12px">
-    <div class="section-title">
-      <h2>Mis Bots / Guilds</h2>
-      <span class="hint right">Elige el servidor a configurar</span>
-    </div>
-    <div class="grid g3">
-      <div>
-        <label>Mis bots</label>
-        <select id="selMyBots"></select>
-      </div>
-      <div>
-        <label>Mis guilds (del bot)</label>
-        <select id="selMyGuilds"></select>
-      </div>
-      <div class="grid g2-50">
-        <div>
-          <label>&nbsp;</label>
-          <button id="btnReloadRoles" class="btn" title="Leer roles del backend">Actualizar roles</button>
-        </div>
-        <div>
-          <label>&nbsp;</label>
-          <button id="btnReloadChannels" class="btn" title="Leer canales del backend">Actualizar canales</button>
-        </div>
-      </div>
-    </div>
-    <div class="footnote">
-      Roles y canales se actualizan cuando el <b>bot está encendido</b> y los envía al backend.
-    </div>
-  </section>
+  <div id="toasts"></div>
 
-  <!-- VISTA BOT -->
-  <section id="viewBot" class="grid g2 hidden" style="margin-top:12px">
-    <!-- IZQUIERDA: Editor -->
-    <div class="card">
-      <div class="section-title">
-        <h2>Editor de Config</h2>
-        <span class="hint right">Branding, canales, roles, botones y formularios</span>
-      </div>
+  <script type="module">
+    import {
+      setToken, getToken, clearAll,
+      login, loginUser,
+      meBots, meGuilds,
+      getGuildRoles, getGuildChannels, getGuildConfig, saveGuildConfig, publishGuildPanel,
+      adminCreateUser, createBot, listBots, assignBotOwner,
+      adminTables, adminDeleteUser, adminDeleteBot, adminDeleteGuild, adminExport, adminImport
+    } from "./service.js";
 
-      <div class="grid g3">
-        <div><label>Brand</label><input id="cfg_brand_name" placeholder="Service Bot"></div>
-        <div><label>Icon URL</label><input id="cfg_brand_icon" placeholder="https://..."></div>
-        <div><label>Banner URL</label><input id="cfg_panel_banner" placeholder="https://..."></div>
-      </div>
+    const $=(id)=>document.getElementById(id);
+    const snooze=(ms)=>new Promise(r=>setTimeout(r,ms));
+    function toast(msg, type=""){ const b=$("toasts"); const d=document.createElement("div"); d.className="toast "+type; d.textContent=msg; b.appendChild(d); setTimeout(()=>d.style.opacity=".96",10); setTimeout(()=>{d.style.opacity="0";d.style.transform="translateY(-6px)";},2600); setTimeout(()=>b.removeChild(d),3000); }
+    function slugify(s){ return String(s||"campo").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g,"_").replace(/^_+|_+$/g,"").slice(0,24); }
+    function newDraftId(prefix="draft"){ return `${prefix}_${Date.now().toString(36)}`; }
+    function blobDownload(data, filename){ const blob=new Blob([data],{type:"application/json"}); const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=filename; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href); document.body.removeChild(a)},0); }
 
-      <!-- Colores -->
-      <div class="grid g3" style="margin-top:6px">
-        <div class="colorcell">
-          <label>Color BG</label>
-          <input id="cfg_color_bg" value="#0f0f10" />
-          <input id="cfg_color_bg_pick" type="color" />
-        </div>
-        <div class="colorcell">
-          <label>Acento</label>
-          <input id="cfg_color_accent" value="#6e57ff" />
-          <input id="cfg_color_accent_pick" type="color" />
-        </div>
-        <div class="colorcell">
-          <label>Texto</label>
-          <input id="cfg_color_text" value="#ffffff" />
-          <input id="cfg_color_text_pick" type="color" />
-        </div>
-      </div>
+    const tabsBox=$("tabsBox");
+    const tabBot=$("tabBot"), tabAdmin=$("tabAdmin");
+    const viewBot=$("viewBot"), viewAdmin=$("viewAdmin");
 
-      <label style="margin-top:6px">Título del panel</label>
-      <input id="cfg_panel_title" placeholder="Panel de Tickets">
+    const btnLogout=$("btnLogout"), welcomeBadge=$("welcomeBadge"), secWelcome=$("secWelcome");
+    const welcomeTitle=$("welcomeTitle"), roleBadge=$("roleBadge");
 
-      <!-- Canales -->
-      <div class="grid g3" style="margin-top:8px">
-        <div>
-          <label>Panel Channel</label>
-          <select id="cfg_channel_panel_sel"></select>
-        </div>
-        <div>
-          <label>Log Channel (transcripts)</label>
-          <select id="cfg_channel_log_sel"></select>
-        </div>
-        <div>
-          <label>Ratings Channel (valoraciones)</label>
-          <select id="cfg_channel_ratings_sel"></select>
-        </div>
-      </div>
+    const secBotsGuilds=$("secBotsGuilds"), selMyBots=$("selMyBots"), selMyGuilds=$("selMyGuilds");
+    const btnReloadRoles=$("btnReloadRoles"), btnReloadChannels=$("btnReloadChannels");
 
-      <!-- Roles -->
-      <div class="grid g3" style="margin-top:8px">
-        <div><label>Rol Staff</label><select id="cfg_role_staff"></select></div>
-        <div><label>Rol High Staff</label><select id="cfg_role_highstaff"></select></div>
-        <div><label>Rol Buycraft</label><select id="cfg_role_buycraft"></select></div>
-      </div>
+    const cfg_brand_name=$("cfg_brand_name"), cfg_brand_icon=$("cfg_brand_icon"), cfg_panel_banner=$("cfg_panel_banner");
+    const cfg_panel_title=$("cfg_panel_title"), cfg_color_bg=$("cfg_color_bg"), cfg_color_accent=$("cfg_color_accent"), cfg_color_text=$("cfg_color_text");
+    const cfg_color_bg_pick=$("cfg_color_bg_pick"), cfg_color_accent_pick=$("cfg_color_accent_pick"), cfg_color_text_pick=$("cfg_color_text_pick");
 
-      <!-- Misc -->
-      <div class="grid g2-50" style="margin-top:8px">
-        <div><label>Server IP (!ip)</label><input id="cfg_misc_ip" placeholder="Server.net" /></div>
-        <div><label>Tienda URL (!tienda)</label><input id="cfg_misc_store" placeholder="https://tienda.com" /></div>
-      </div>
+    const cfg_channel_panel_sel=$("cfg_channel_panel_sel"), cfg_channel_log_sel=$("cfg_channel_log_sel"), cfg_channel_ratings_sel=$("cfg_channel_ratings_sel");
+    const cfg_role_staff=$("cfg_role_staff"), cfg_role_highstaff=$("cfg_role_highstaff"), cfg_role_buycraft=$("cfg_role_buycraft");
+    const cfg_misc_ip=$("cfg_misc_ip"), cfg_misc_store=$("cfg_misc_store");
 
-      <div class="hr"></div>
+    const boxButtons=$("boxButtons"), btn_title=$("btn_title"), btn_sub=$("btn_sub"), btn_label=$("btn_label"), btn_emoji=$("btn_emoji"),
+          btn_visible=$("btn_visible"), btn_category_sel=$("btn_category_sel"), btn_id_read=$("btn_id_read"),
+          btnSaveButton=$("btnSaveButton"), btnDelButton=$("btnDelButton"), tpl_buttons=$("tpl_buttons"), btnAddTplButton=$("btnAddTplButton"),
+          btnNewButton=$("btnNewButton");
 
-      <!-- Botones -->
-      <div class="row" style="justify-content:space-between">
-        <h3 style="margin:0">Botones del panel</h3>
-        <div class="row">
-          <select id="tpl_buttons" title="Plantillas de botones">
-            <option value="">Plantilla de botón…</option>
-            <option value="general">Soporte general</option>
-            <option value="compras">Soporte compras/Buycraft</option>
-            <option value="reclamos">Reclamos</option>
-            <option value="apelaciones">Apelaciones</option>
-          </select>
-          <button id="btnAddTplButton" class="btn">Agregar</button>
-          <button id="btnNewButton" class="btn">Nuevo botón</button>
-        </div>
-      </div>
+    const boxFields=$("boxFields"), fld_type=$("fld_type"), fld_label=$("fld_label"), fld_ph=$("fld_ph"),
+          fld_req=$("fld_req"), fld_max=$("fld_max"), btnSaveField=$("btnSaveField"), btnDelField=$("btnDelField"),
+          tpl_fields=$("tpl_fields"), btnAddTplFields=$("btnAddTplFields"), btnNewField=$("btnNewField");
 
-      <div class="grid g2-50">
-        <div>
-          <div id="boxButtons" class="list" aria-label="Arrastra para reordenar"></div>
-          <div class="hint" style="margin-top:6px">Drag & drop para ordenar. Selecciona uno para editarlo y sus campos.</div>
-        </div>
-        <div>
-          <label>Título</label><input id="btn_title" placeholder="Soporte general">
-          <label>Subtítulo</label><input id="btn_sub" placeholder="Ayuda en general">
-          <label>Texto del botón</label><input id="btn_label" placeholder="💬 Abrir ticket">
-          <label>Emoji</label><input id="btn_emoji" placeholder="💬">
-          <label>Categoría destino (dónde se crean los tickets)</label>
-          <select id="btn_category_sel"></select>
-          <div class="row" style="margin-top:6px">
-            <label style="margin:0">Visible</label><input id="btn_visible" type="checkbox" checked style="width:auto;margin-left:8px">
-            <span class="hint">ID interno: <span class="mono" id="btn_id_read">—</span></span>
-            <button id="btnSaveButton" class="btn acc" style="margin-left:auto">Guardar botón</button>
-            <button id="btnDelButton" class="btn bad">Eliminar</button>
-          </div>
-        </div>
-      </div>
+    const btnLoadCfg=$("btnLoadCfg"), btnSaveCfg=$("btnSaveCfg"), btnPublish=$("btnPublish"), cfgMsg=$("cfgMsg");
+    const livePreview=$("livePreview"), formPreview=$("formPreview");
 
-      <div class="hr"></div>
+    const overlay=$("loginOverlay"), loginUserEl=$("loginUser"), loginPass=$("loginPass"),
+          btnLoginAdmin=$("btnLoginAdmin"), btnLoginClient=$("btnLoginClient");
 
-      <!-- Campos -->
-      <div class="row" style="justify-content:space-between">
-        <h3 style="margin:0">Campos del formulario</h3>
-        <div class="row">
-          <select id="tpl_fields" title="Plantillas de campos">
-            <option value="">Plantilla de campos…</option>
-            <option value="campos_basicos">Usuario + Descripción</option>
-            <option value="compras">Compra: Pedido + Método + Pruebas</option>
-            <option value="reclamo_staff">Reclamo: Staff + Evidencia</option>
-            <option value="apelacion">Apelación: Motivo + Por qué deberían aceptarla</option>
-          </select>
-          <button id="btnAddTplFields" class="btn">Agregar</button>
-          <button id="btnNewField" class="btn">Nuevo campo</button>
-        </div>
-      </div>
+    const searchTablesEl=$("searchTables"), btnReloadTables=$("btnReloadTables"), btnExport=$("btnExport"),
+          fileImport=$("fileImport"), tablesMsg=$("tablesMsg"), tblUsers=$("tblUsers"), tblBots=$("tblBots"),
+          tblGuilds=$("tblGuilds"), admDataCard=$("admDataCard");
 
-      <div class="grid g2-50">
-        <div>
-          <div id="boxFields" class="list" aria-label="Arrastra para reordenar"></div>
-          <div class="hint" style="margin-top:6px">Drag & drop para ordenar campos. Click para editar.</div>
-        </div>
-        <div>
-          <label>Tipo</label>
-          <select id="fld_type"><option value="short">short</option><option value="paragraph">paragraph</option></select>
-          <label>Etiqueta (lo que verá el usuario)</label><input id="fld_label" placeholder="¿Nombre de usuario?">
-          <label>Placeholder</label><input id="fld_ph" placeholder="Tu nick">
-          <div class="grid g3">
-            <div><label>Requerido</label><select id="fld_req"><option>true</option><option>false</option></select></div>
-            <div><label>MaxLen</label><input id="fld_max" value="100"></div>
-            <div style="display:flex;align-items:flex-end"><button id="btnSaveField" class="btn acc" style="width:100%">Guardar campo</button></div>
-          </div>
-          <button id="btnDelField" class="btn bad" style="margin-top:6px">Eliminar seleccionado</button>
-        </div>
-      </div>
+    let isAdmin=false, meName="";
+    let currentBotId=null, currentGuildId=null, currentConfig=null;
+    let selectedButtonIndex=-1, selectedFieldIndex=-1;
+    let currentFormKey="ticket_general";
+    let cachedRoles=[], cachedChannels=[];
+    let snapshotTables={users:[],bots:[],guilds:[]};
 
-      <div class="hr"></div>
-      <div class="row">
-        <button id="btnLoadCfg" class="btn">Cargar config</button>
-        <button id="btnSaveCfg" class="btn acc">Guardar config</button>
-        <button id="btnPublish" class="btn good">Publicar panel</button>
-        <span id="cfgMsg" class="hint right">—</span>
-      </div>
-      <div class="footnote">“Publicar panel” guarda y ordena al bot repintar el panel en Discord.</div>
-    </div>
+    function isLogged(){
+      const t=getToken(); if(!t) return false;
+      try{ JSON.parse(atob(t.split(".")[1]||"")); return true; }catch{ return false; }
+    }
 
-    <!-- DERECHA: Vista rápida -->
-    <div class="grid g2-50">
-      <div class="card">
-        <div class="section-title"><h2>Vista rápida</h2><span class="hint right">Resumen</span></div>
-        <div id="livePreview" class="pv-wrap">
-          <div class="pv-sections">
+    function gateUI(){
+      if(!isLogged()){
+        tabsBox.classList.add("locked");
+        overlay.classList.remove("hidden");
+        welcomeBadge.classList.add("hidden");
+        btnLogout.classList.add("hidden");
+        secWelcome.classList.add("hidden");
+        secBotsGuilds.classList.add("hidden");
+        viewBot.classList.add("hidden");
+        viewAdmin.classList.add("hidden");
+      }else{
+        tabsBox.classList.remove("locked");
+        overlay.classList.add("hidden");
+        welcomeBadge.classList.remove("hidden");
+        btnLogout.classList.remove("hidden");
+        secWelcome.classList.remove("hidden");
+        secBotsGuilds.classList.remove("hidden");
+        showTab("bot");
+      }
+    }
+
+    function showTab(which){
+      if(!isLogged()){ toast("Inicia sesión primero","err"); return; }
+      if(which==="admin"){
+        if(!isAdmin){ toast("Solo para administradores","err"); return; }
+        tabAdmin.classList.add("active"); tabBot.classList.remove("active");
+        viewAdmin.classList.remove("hidden"); viewBot.classList.add("hidden");
+      }else{
+        tabBot.classList.add("active"); tabAdmin.classList.remove("active");
+        viewBot.classList.remove("hidden"); viewAdmin.classList.add("hidden");
+      }
+    }
+
+    tabBot.onclick=()=>showTab("bot");
+    tabAdmin.onclick=()=>showTab("admin");
+
+    btnLogout.onclick=()=>{
+      clearAll(); isAdmin=false; meName="";
+      tabAdmin.style.display="";
+      gateUI();
+    };
+
+    function afterLogin(){
+      try{
+        const p = JSON.parse(atob(getToken().split(".")[1]||""));
+        meName=p.username||"usuario"; isAdmin=!!p.isAdmin;
+        welcomeTitle.innerHTML=`<b>Bienvenido, ${meName}</b>`;
+        welcomeBadge.textContent=`Hola, ${meName}`;
+        roleBadge.textContent=isAdmin?"ADMIN":"CLIENTE";
+        tabAdmin.style.display = isAdmin ? "" : "none";
+        admDataCard.style.display = isAdmin ? "" : "none";
+        gateUI();
+        loadMyBots();
+        if(isAdmin){ reloadTables().catch(()=>{}); }
+      }catch{}
+    }
+
+    btnLoginAdmin.onclick=async()=>{ try{
+      const r=await login((loginUserEl.value||"admin").trim(), loginPass.value);
+      if(r?.token){ setToken(r.token); afterLogin(); }
+    }catch(e){ toast("Login admin: "+(e.message||e),"err"); } };
+
+    btnLoginClient.onclick=async()=>{ try{
+      const r=await loginUser(loginUserEl.value.trim(), loginPass.value);
+      if(r?.token){ setToken(r.token); afterLogin(); }
+    }catch(e){ toast("Login cliente: "+(e.message||e),"err"); } };
+
+    loginPass.addEventListener("keydown",(ev)=>{ if(ev.key==="Enter") btnLoginAdmin.click(); });
+
+    async function loadMyBots(){
+      selMyBots.innerHTML=""; selMyGuilds.innerHTML="";
+      try{
+        const r = await meBots();
+        (r.bots||[]).forEach(b=>{
+          const o=document.createElement("option");
+          o.value=b.id; o.textContent=`${b.name} (${b.id.slice(0,6)})`;
+          selMyBots.appendChild(o);
+        });
+        currentBotId = selMyBots.value || null;
+        await loadMyGuilds();
+      }catch(e){ toast("No pude cargar bots: "+(e.message||e),"err"); }
+    }
+
+    async function loadMyGuilds(){
+      selMyGuilds.innerHTML=""; if(!currentBotId) return;
+      const r = await meGuilds();
+      (r.guilds||[]).filter(g=>g.botId===currentBotId).forEach(g=>{
+        const o=document.createElement("option");
+        o.value=g.guildId; o.textContent=`${g.name} (${g.guildId})`;
+        selMyGuilds.appendChild(o);
+      });
+      currentGuildId = selMyGuilds.value || null;
+      if(currentGuildId){ await Promise.all([loadConfig(), loadRoles(), loadChannels()]); }
+    }
+
+    selMyBots.onchange = ()=>{ currentBotId=selMyBots.value; loadMyGuilds(); };
+    selMyGuilds.onchange = ()=>{ currentGuildId=selMyGuilds.value; loadConfig(); };
+
+    async function loadRoles(){
+      try{
+        const r=await getGuildRoles(currentGuildId);
+        cachedRoles=r.roles||[];
+        fillRolesSelectors();
+      }catch{}
+    }
+
+    async function loadChannels(){
+      try{
+        const r=await getGuildChannels(currentGuildId);
+        cachedChannels=r.channels||[];
+        fillChannelSelectors();
+        fillCategorySelector();
+      }catch{}
+    }
+
+    function fillRolesSelectors(){
+      const fill=(sel, selectedId)=>{
+        sel.innerHTML="";
+        const optEmpty=document.createElement("option");
+        optEmpty.value=""; optEmpty.textContent="—"; sel.appendChild(optEmpty);
+        cachedRoles.sort((a,b)=>b.position-a.position).forEach(r=>{
+          const o=document.createElement("option");
+          o.value=r.id; o.textContent=`${r.name} (${r.id})`;
+          if(r.id===selectedId) o.selected=true;
+          sel.appendChild(o);
+        });
+      };
+      if(!currentConfig) return;
+      fill(cfg_role_staff, currentConfig.permissions?.staffRoleId||"");
+      fill(cfg_role_highstaff, currentConfig.permissions?.highStaffRoleId||"");
+      fill(cfg_role_buycraft, currentConfig.permissions?.buycraftRoleId||"");
+    }
+
+    function fillChannelSelectors(){
+      const textChannels=cachedChannels.filter(c=>c.type===0||c.type===5);
+      const fill=(sel,selectedId)=>{
+        sel.innerHTML="";
+        const optEmpty=document.createElement("option");
+        optEmpty.value=""; optEmpty.textContent="—"; sel.appendChild(optEmpty);
+        textChannels.forEach(c=>{
+          const o=document.createElement("option");
+          o.value=c.id; o.textContent=`#${c.name} (${c.id})`;
+          if(c.id===selectedId) o.selected=true;
+          sel.appendChild(o);
+        });
+      };
+      if(!currentConfig) return;
+      fill(cfg_channel_panel_sel, currentConfig.channels?.panelChannelId||"");
+      fill(cfg_channel_log_sel, currentConfig.channels?.logChannelId||"");
+      fill(cfg_channel_ratings_sel, currentConfig.channels?.ratingsChannelId||"");
+    }
+
+    function fillCategorySelector(){
+      const cats=cachedChannels.filter(c=>c.type===4);
+      btn_category_sel.innerHTML="";
+      const optEmpty=document.createElement("option");
+      optEmpty.value=""; optEmpty.textContent="— (sin categoría)";
+      btn_category_sel.appendChild(optEmpty);
+      cats.forEach(c=>{
+        const o=document.createElement("option");
+        o.value=c.id; o.textContent=`${c.name} (${c.id})`;
+        btn_category_sel.appendChild(o);
+      });
+      const catId=currentConfig?.categories?.[currentFormKey]||"";
+      if(catId) btn_category_sel.value=catId;
+    }
+
+    btnReloadRoles.onclick=loadRoles;
+    btnReloadChannels.onclick=async()=>{ await loadChannels(); renderPreview(currentConfig); };
+
+    function renderPreview(cfg){
+      if(!livePreview||!cfg) return;
+      const accent=cfg.panel?.theme?.accent||"#6e57ff";
+      const text=cfg.panel?.theme?.text||"#ffffff";
+      const bg=cfg.panel?.theme?.bg||"#0f0f10";
+      livePreview.style.setProperty("--pv-accent", accent);
+      livePreview.style.setProperty("--pv-text", text);
+      livePreview.style.setProperty("--pv-bg", bg);
+      const visibles=(cfg.buttons||[]).filter(b=>b.visible!==false).sort((a,b)=>(a.order||0)-(b.order||0));
+      livePreview.innerHTML=`
+        <div class="pv-sections">
+          ${visibles.map(b=>`
             <div class="pv-row">
               <div class="pv-info">
-                <div class="pv-emoji">🎟️</div>
+                <div class="pv-emoji">${b.emoji||"🎟️"}</div>
                 <div>
-                  <div class="pv-h">Ejemplo</div>
-                  <div class="pv-sub">Botón de muestra</div>
+                  <div class="pv-h">${b.title||""}</div>
+                  <div class="pv-sub">${b.subtitle||""}</div>
                 </div>
               </div>
-              <button class="pv-btn">Abrir</button>
+              <button class="pv-btn">${(b.emoji||"")} ${b.label||b.title||"Abrir"}</button>
             </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="section-title"><h2>Vista previa del formulario</h2><span class="hint right">Del botón activo</span></div>
-        <div id="formPreview"></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- VISTA ADMIN -->
-  <section id="viewAdmin" class="hidden" style="margin-top:12px">
-    <div class="grid g2-50">
-      <div class="card">
-        <div class="section-title"><h2>Usuarios</h2><span class="hint right">Crear cuentas</span></div>
-        <label>Usuario</label><input id="adm_u_user" placeholder="cliente01">
-        <label>Contraseña</label><input id="adm_u_pass" type="password" placeholder="••••••">
-        <label>¿Es admin?</label>
-        <select id="adm_u_isadmin"><option value="false">No</option><option value="true">Sí</option></select>
-        <div class="row" style="margin-top:8px">
-          <button class="btn good" id="btnAdmCreateUser">Crear usuario</button>
-          <span class="hint right" id="adm_user_msg">—</span>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="section-title"><h2>Bots</h2><span class="hint right">Crear y asignar dueño</span></div>
-        <label>Nombre del bot</label><input id="adm_b_name" placeholder="Mi bot">
-        <div class="row" style="margin-top:8px">
-          <button class="btn acc" id="btnAdmCreateBot">Crear bot</button>
-          <button class="btn" id="btnAdmListBots">Listar bots</button>
-        </div>
-
-        <div class="hr"></div>
-        <label>Bot</label>
-        <select id="adm_b_sel"></select>
-        <label>Owner userId (ID del usuario cliente)</label>
-        <input id="adm_b_owner" placeholder="uuid del usuario">
-        <div class="row" style="margin-top:8px">
-          <button class="btn" id="btnAdmAssignOwner">Asignar dueño</button>
-          <span class="hint right" id="adm_bot_msg">—</span>
-        </div>
-
-        <div class="hr"></div>
-        <div class="small">
-          <b>apiKey del último bot creado:</b>
-          <div id="adm_apiKey_box" class="mono pill" style="margin-top:6px">—</div>
-        </div>
-      </div>
-    </div>
-  </section>
-</div>
-
-<!-- LOGIN OVERLAY -->
-<div id="loginOverlay" class="overlay">
-  <div class="login-card">
-    <div class="login-title">
-      <div class="dot" style="width:10px;height:10px"></div>
-      <h1>Iniciar sesión</h1>
-    </div>
-    <label>Usuario</label>
-    <input id="loginUser" placeholder="admin" />
-    <label>Contraseña</label>
-    <input id="loginPass" type="password" placeholder="••••••" />
-    <div class="seg">
-      <button id="btnLoginAdmin" class="btn acc">Entrar (ADMIN)</button>
-      <button id="btnLoginClient" class="btn">Entrar (CLIENTE)</button>
-    </div>
-    <div class="hint" style="margin-top:10px">Después de iniciar verás el panel completo. Cierra sesión arriba a la derecha.</div>
-  </div>
-</div>
-
-<div id="toasts"></div>
-
-<script type="module">
-  import {
-    setToken, getToken, clearAll,
-    login, loginUser,
-    meBots, meGuilds,
-    getGuildRoles, getGuildChannels, getGuildConfig, saveGuildConfig, publishGuildPanel,
-    adminCreateUser, createBot, listBots, assignBotOwner
-  } from "./service.js";
-
-  // ==== helpers ====
-  const $ = (id)=>document.getElementById(id);
-  const snooze=(ms)=>new Promise(r=>setTimeout(r,ms));
-  function toast(msg, type=""){ const b=$("toasts"); const d=document.createElement("div");
-    d.className="toast "+type; d.textContent=msg; b.appendChild(d); setTimeout(()=>d.style.opacity=".96",10);
-    setTimeout(()=>{d.style.opacity="0";d.style.transform="translateY(-6px)";},2600);
-    setTimeout(()=>b.removeChild(d),3000);
-  }
-  // IDs seguros para campos (evita errores en Discord)
-  function slugify(s){
-    return String(s || "campo")
-      .toLowerCase()
-      .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
-      .replace(/[^a-z0-9]+/g,"_")
-      .replace(/^_+|_+$/g,"")
-      .slice(0, 24);
-  }
-  function newDraftId(prefix="draft"){ return `${prefix}_${Date.now().toString(36)}`; }
-
-  // ==== refs ====
-  const tabsBox = $("tabsBox");
-  const tabBot=$("tabBot"), tabAdmin=$("tabAdmin");
-  const viewBot=$("viewBot"), viewAdmin=$("viewAdmin");
-
-  const btnLogout=$("btnLogout"), welcomeBadge=$("welcomeBadge"), secWelcome=$("secWelcome");
-  const welcomeTitle=$("welcomeTitle"), roleBadge=$("roleBadge");
-
-  const secBotsGuilds=$("secBotsGuilds"), selMyBots=$("selMyBots"), selMyGuilds=$("selMyGuilds");
-  const btnReloadRoles=$("btnReloadRoles"), btnReloadChannels=$("btnReloadChannels");
-
-  // editor
-  const cfg_brand_name=$("cfg_brand_name"), cfg_brand_icon=$("cfg_brand_icon"), cfg_panel_banner=$("cfg_panel_banner");
-  const cfg_panel_title=$("cfg_panel_title"), cfg_color_bg=$("cfg_color_bg"), cfg_color_accent=$("cfg_color_accent"), cfg_color_text=$("cfg_color_text");
-  const cfg_color_bg_pick=$("cfg_color_bg_pick"), cfg_color_accent_pick=$("cfg_color_accent_pick"), cfg_color_text_pick=$("cfg_color_text_pick");
-
-  const cfg_channel_panel_sel=$("cfg_channel_panel_sel"), cfg_channel_log_sel=$("cfg_channel_log_sel"), cfg_channel_ratings_sel=$("cfg_channel_ratings_sel");
-  const cfg_role_staff=$("cfg_role_staff"), cfg_role_highstaff=$("cfg_role_highstaff"), cfg_role_buycraft=$("cfg_role_buycraft");
-  const cfg_misc_ip=$("cfg_misc_ip"), cfg_misc_store=$("cfg_misc_store");
-
-  const boxButtons=$("boxButtons"), btn_title=$("btn_title"), btn_sub=$("btn_sub"), btn_label=$("btn_label"), btn_emoji=$("btn_emoji"),
-        btn_visible=$("btn_visible"), btn_category_sel=$("btn_category_sel"), btn_id_read=$("btn_id_read"),
-        btnSaveButton=$("btnSaveButton"), btnDelButton=$("btnDelButton"), tpl_buttons=$("tpl_buttons"), btnAddTplButton=$("btnAddTplButton"),
-        btnNewButton=$("btnNewButton");
-
-  const boxFields=$("boxFields"), fld_type=$("fld_type"), fld_label=$("fld_label"), fld_ph=$("fld_ph"),
-        fld_req=$("fld_req"), fld_max=$("fld_max"), btnSaveField=$("btnSaveField"), btnDelField=$("btnDelField"),
-        tpl_fields=$("tpl_fields"), btnAddTplFields=$("btnAddTplFields"), btnNewField=$("btnNewField");
-
-  const btnLoadCfg=$("btnLoadCfg"), btnSaveCfg=$("btnSaveCfg"), btnPublish=$("btnPublish"), cfgMsg=$("cfgMsg");
-  const livePreview=$("livePreview"), formPreview=$("formPreview");
-
-  // overlay login
-  const overlay=$("loginOverlay"), loginUserEl=$("loginUser"), loginPass=$("loginPass"),
-        btnLoginAdmin=$("btnLoginAdmin"), btnLoginClient=$("btnLoginClient");
-
-  // ==== state ====
-  let isAdmin=false, meName="";
-  let currentBotId=null, currentGuildId=null, currentConfig=null;
-  let selectedButtonIndex=-1, selectedFieldIndex=-1;
-  let currentFormKey="ticket_general";
-  let cachedRoles=[], cachedChannels=[];
-
-  // ==== gating ====
-  function isLogged(){
-    const t=getToken(); if(!t) return false;
-    try{ JSON.parse(atob(t.split(".")[1]||"")); return true; }catch{ return false; }
-  }
-  function gateUI(){
-    if(!isLogged()){
-      tabsBox.classList.add("locked");
-      overlay.classList.remove("hidden");
-      welcomeBadge.classList.add("hidden");
-      btnLogout.classList.add("hidden");
-      secWelcome.classList.add("hidden");
-      secBotsGuilds.classList.add("hidden");
-      viewBot.classList.add("hidden");
-      viewAdmin.classList.add("hidden");
-    }else{
-      tabsBox.classList.remove("locked");
-      overlay.classList.add("hidden");
-      welcomeBadge.classList.remove("hidden");
-      btnLogout.classList.remove("hidden");
-      secWelcome.classList.remove("hidden");
-      secBotsGuilds.classList.remove("hidden");
-      showTab("bot");
+          `).join("")}
+        </div>`;
+      renderFormPreview();
     }
-  }
 
-  function showTab(which){
-    if(!isLogged()){ toast("Inicia sesión primero","err"); return; }
-    if(which==="admin"){
-      if(!isAdmin){ toast("Solo para administradores","err"); return; }
-      tabAdmin.classList.add("active"); tabBot.classList.remove("active");
-      viewAdmin.classList.remove("hidden"); viewBot.classList.add("hidden");
-    }else{
-      tabBot.classList.add("active"); tabAdmin.classList.remove("active");
-      viewBot.classList.remove("hidden"); viewAdmin.classList.add("hidden");
+    function renderFormPreview(){
+      if(!currentConfig) return;
+      const arr = getFormArrayFor(currentFormKey);
+      formPreview.innerHTML = arr.map(f=>{
+        const req = f.required!==false ? " *" : "";
+        const ctl = f.type==="paragraph"
+          ? `<div class="ftextarea" contenteditable="false" aria-disabled="true"></div>`
+          : `<div class="finput" contenteditable="false" aria-disabled="true"></div>`;
+        return `<div class="field"><div class="flabel">${f.label||f.id||"Campo"}${req}</div>${ctl}</div>`;
+      }).join("") || `<div class="hint">No hay campos aún.</div>`;
     }
-  }
-  tabBot.onclick=()=>showTab("bot");
-  tabAdmin.onclick=()=>showTab("admin");
 
-  btnLogout.onclick=()=>{ clearAll(); isAdmin=false; meName=""; tabAdmin.style.display=""; gateUI(); };
+    function getFormArrayFor(key){
+      const f=(currentConfig.forms||{})[key];
+      return Array.isArray(f) ? f : (f?.fields||[]);
+    }
 
-  // ==== auth ====
-  function afterLogin(){
-    try{
-      const p = JSON.parse(atob(getToken().split(".")[1]||""));
-      meName=p.username||"usuario"; isAdmin=!!p.isAdmin;
-      welcomeTitle.innerHTML=`<b>Bienvenido, ${meName}</b>`;
-      welcomeBadge.textContent=`Hola, ${meName}`;
-      roleBadge.textContent=isAdmin?"ADMIN":"CLIENTE";
-      tabAdmin.style.display = isAdmin ? "" : "none";
-      gateUI();
-      loadMyBots();
-    }catch{}
-  }
+    function ensureFormObject(key){
+      if(!currentConfig.forms) currentConfig.forms={};
+      if(!currentConfig.forms[key]) currentConfig.forms[key]={ title:"Formulario", fields:[] };
+      if(Array.isArray(currentConfig.forms[key])) currentConfig.forms[key]={ title:"Formulario", fields: currentConfig.forms[key] };
+    }
 
-  btnLoginAdmin.onclick=async()=>{ try{
-    const r=await login((loginUserEl.value||"admin").trim(), loginPass.value);
-    if(r?.token){ setToken(r.token); afterLogin(); }
-  }catch(e){ toast("Login admin: "+(e.message||e),"err"); } };
-
-  btnLoginClient.onclick=async()=>{ try{
-    const r=await loginUser(loginUserEl.value.trim(), loginPass.value);
-    if(r?.token){ setToken(r.token); afterLogin(); }
-  }catch(e){ toast("Login cliente: "+(e.message||e),"err"); } };
-
-  loginPass.addEventListener("keydown",(ev)=>{ if(ev.key==="Enter") btnLoginAdmin.click(); });
-
-  // ==== bots/guilds ====
-  async function loadMyBots(){
-    selMyBots.innerHTML=""; selMyGuilds.innerHTML="";
-    try{
-      const r = await meBots();
-      (r.bots||[]).forEach(b=>{
-        const o=document.createElement("option"); o.value=b.id; o.textContent=`${b.name} (${b.id.slice(0,6)})`; selMyBots.appendChild(o);
+    function renderButtons(){
+      boxButtons.innerHTML="";
+      (currentConfig.buttons||[]).forEach((b,idx)=>{
+        const d=document.createElement("div");
+        d.className="item"; d.draggable=true; d.dataset.idx=idx;
+        d.innerHTML=`<span class="mono">${b.title||b.id}</span><span class="hint">${b.visible===false?"oculto":" "}</span>`;
+        d.onclick=()=>selectButton(idx);
+        d.addEventListener("dragstart",()=>{ d.classList.add("dragging"); });
+        d.addEventListener("dragend",()=>{ d.classList.remove("dragging"); updateButtonsFromDOM(); });
+        boxButtons.appendChild(d);
       });
-      currentBotId = selMyBots.value || null;
-      await loadMyGuilds();
-    }catch(e){ toast("No pude cargar bots: "+(e.message||e),"err"); }
-  }
-  async function loadMyGuilds(){
-    selMyGuilds.innerHTML=""; if(!currentBotId) return;
-    const r = await meGuilds();
-    (r.guilds||[]).filter(g=>g.botId===currentBotId).forEach(g=>{
-      const o=document.createElement("option"); o.value=g.guildId; o.textContent=`${g.name} (${g.guildId})`; selMyGuilds.appendChild(o);
-    });
-    currentGuildId = selMyGuilds.value || null;
-    if(currentGuildId){ await Promise.all([loadConfig(), loadRoles(), loadChannels()]); }
-  }
-  selMyBots.onchange = ()=>{ currentBotId=selMyBots.value; loadMyGuilds(); };
-  selMyGuilds.onchange = ()=>{ currentGuildId=selMyGuilds.value; loadConfig(); };
-
-  async function loadRoles(){
-    try{ const r=await getGuildRoles(currentGuildId); cachedRoles=r.roles||[]; fillRolesSelectors(); }
-    catch(e){ console.warn("roles:",e.message||e); }
-  }
-  async function loadChannels(){
-    try{
-      const r=await getGuildChannels(currentGuildId);
-      cachedChannels=r.channels||[]; fillChannelSelectors(); fillCategorySelector();
-    }catch(e){ console.warn("channels:",e.message||e); }
-  }
-  function fillRolesSelectors(){
-    const fill=(sel, selectedId)=>{
-      sel.innerHTML=""; const optEmpty=document.createElement("option"); optEmpty.value=""; optEmpty.textContent="—"; sel.appendChild(optEmpty);
-      cachedRoles.sort((a,b)=>b.position-a.position).forEach(r=>{
-        const o=document.createElement("option"); o.value=r.id; o.textContent=`${r.name} (${r.id})`; if(r.id===selectedId) o.selected=true; sel.appendChild(o);
+      boxButtons.addEventListener("dragover",(e)=>{
+        e.preventDefault();
+        const dragging = boxButtons.querySelector(".dragging");
+        if(!dragging) return;
+        const siblings=[...boxButtons.querySelectorAll(".item:not(.dragging)")];
+        const next = siblings.find(s=>{
+          const rect=s.getBoundingClientRect();
+          return e.clientY <= rect.top + rect.height/2;
+        });
+        boxButtons.insertBefore(dragging, next||null);
       });
-    };
-    if(!currentConfig) return;
-    fill(cfg_role_staff, currentConfig.permissions?.staffRoleId||"");
-    fill(cfg_role_highstaff, currentConfig.permissions?.highStaffRoleId||"");
-    fill(cfg_role_buycraft, currentConfig.permissions?.buycraftRoleId||"");
-  }
-  function fillChannelSelectors(){
-    const textChannels=cachedChannels.filter(c=>c.type===0||c.type===5);
-    const fill=(sel,selectedId)=>{
-      sel.innerHTML=""; const optEmpty=document.createElement("option"); optEmpty.value=""; optEmpty.textContent="—"; sel.appendChild(optEmpty);
-      textChannels.forEach(c=>{ const o=document.createElement("option"); o.value=c.id; o.textContent=`#${c.name} (${c.id})`; if(c.id===selectedId) o.selected=true; sel.appendChild(o); });
-    };
-    if(!currentConfig) return;
-    fill(cfg_channel_panel_sel, currentConfig.channels?.panelChannelId||"");
-    fill(cfg_channel_log_sel, currentConfig.channels?.logChannelId||"");
-    fill(cfg_channel_ratings_sel, currentConfig.channels?.ratingsChannelId||"");
-  }
-  function fillCategorySelector(){
-    const cats=cachedChannels.filter(c=>c.type===4);
-    btn_category_sel.innerHTML=""; const optEmpty=document.createElement("option"); optEmpty.value=""; optEmpty.textContent="— (sin categoría)"; btn_category_sel.appendChild(optEmpty);
-    cats.forEach(c=>{ const o=document.createElement("option"); o.value=c.id; o.textContent=`${c.name} (${c.id})`; btn_category_sel.appendChild(o); });
-    const catId=currentConfig?.categories?.[currentFormKey]||""; if(catId) btn_category_sel.value=catId;
-  }
-  btnReloadRoles.onclick=loadRoles;
-  btnReloadChannels.onclick=async()=>{ await loadChannels(); renderPreview(currentConfig); }
+    }
 
-  // ==== PREVIEW PANEL (sin imagen) ====
-  function renderPreview(cfg){
-    if(!livePreview||!cfg) return;
-    const accent=cfg.panel?.theme?.accent||"#6e57ff";
-    const text=cfg.panel?.theme?.text||"#ffffff";
-    const bg=cfg.panel?.theme?.bg||"#0f0f10";
-    livePreview.style.setProperty("--pv-accent", accent);
-    livePreview.style.setProperty("--pv-text", text);
-    livePreview.style.setProperty("--pv-bg", bg);
-
-    const visibles=(cfg.buttons||[]).filter(b=>b.visible!==false).sort((a,b)=>(a.order||0)-(b.order||0));
-    livePreview.innerHTML=`
-      <div class="pv-sections">
-        ${visibles.map(b=>`
-          <div class="pv-row">
-            <div class="pv-info">
-              <div class="pv-emoji">${b.emoji||"🎟️"}</div>
-              <div>
-                <div class="pv-h">${b.title||""}</div>
-                <div class="pv-sub">${b.subtitle||""}</div>
-              </div>
-            </div>
-            <button class="pv-btn">${(b.emoji||"")} ${b.label||b.title||"Abrir"}</button>
-          </div>
-        `).join("")}
-      </div>`;
-    renderFormPreview();
-  }
-
-  // ==== PREVIEW FORM ====
-  function renderFormPreview(){
-    if(!currentConfig) return;
-    const arr = getFormArrayFor(currentFormKey);
-    formPreview.innerHTML = arr.map(f=>{
-      const req = f.required!==false ? " *" : "";
-      const ctl = f.type==="paragraph"
-        ? `<div class="ftextarea" contenteditable="false" aria-disabled="true"></div>`
-        : `<div class="finput" contenteditable="false" aria-disabled="true"></div>`;
-      return `<div class="field"><div class="flabel">${f.label||f.id||"Campo"}${req}</div>${ctl}</div>`;
-    }).join("") || `<div class="hint">No hay campos aún.</div>`;
-  }
-
-  // ==== editor load/save ====
-  function getFormArrayFor(key){
-    const f=(currentConfig.forms||{})[key];
-    return Array.isArray(f) ? f : (f?.fields||[]);
-  }
-  function ensureFormObject(key){
-    if(!currentConfig.forms) currentConfig.forms={};
-    if(!currentConfig.forms[key]) currentConfig.forms[key]={ title:"Formulario", fields:[] };
-    if(Array.isArray(currentConfig.forms[key])) currentConfig.forms[key]={ title:"Formulario", fields: currentConfig.forms[key] };
-  }
-  function renderButtons(){
-    boxButtons.innerHTML="";
-    (currentConfig.buttons||[]).forEach((b,idx)=>{
-      const d=document.createElement("div"); d.className="item"; d.draggable=true; d.dataset.idx=idx;
-      d.innerHTML=`<span class="mono">${b.title||b.id}</span><span class="hint">${b.visible===false?"oculto":" "}</span>`;
-      d.onclick=()=>selectButton(idx);
-      d.addEventListener("dragstart",()=>{ d.classList.add("dragging"); });
-      d.addEventListener("dragend",()=>{ d.classList.remove("dragging"); updateButtonsFromDOM(); });
-      boxButtons.appendChild(d);
-    });
-    boxButtons.addEventListener("dragover",(e)=>{
-      e.preventDefault();
-      const dragging = boxButtons.querySelector(".dragging");
-      if(!dragging) return;
-      const siblings=[...boxButtons.querySelectorAll(".item:not(.dragging)")];
-      const next = siblings.find(s=>{
-        const rect=s.getBoundingClientRect();
-        return e.clientY <= rect.top + rect.height/2;
-      });
-      boxButtons.insertBefore(dragging, next||null);
-    });
-  }
-  function updateButtonsFromDOM(){
-    const ids = [...boxButtons.querySelectorAll(".item")].map(n=>Number(n.dataset.idx));
-    const arr = (currentConfig.buttons||[]).slice();
-    const reordered = ids.map(i=>arr[i]).filter(Boolean);
-    currentConfig.buttons = reordered.map((b,i)=>({ ...b, order:i+1 }));
-    renderPreview(currentConfig);
-  }
-  function selectButton(idx){
-    selectedButtonIndex=idx;
-    const b=currentConfig.buttons[idx];
-    currentFormKey=b.id;
-    btn_id_read.textContent=b.id;
-    btn_title.value=b.title||""; btn_sub.value=b.subtitle||""; btn_label.value=b.label||""; btn_emoji.value=b.emoji||""; btn_visible.checked=b.visible!==false;
-    const catId=currentConfig?.categories?.[currentFormKey]||""; btn_category_sel.value=catId||"";
-    renderFields(); renderPreview(currentConfig);
-  }
-
-  function renderFields(){
-    boxFields.innerHTML="";
-    ensureFormObject(currentFormKey);
-    const formArr=getFormArrayFor(currentFormKey);
-    formArr.forEach((f,idx)=>{
-      const d=document.createElement("div"); d.className="item"; d.draggable=true; d.dataset.fidx=idx;
-      d.innerHTML=`<span class="mono">${f.label||f.id||f.type}</span><span class="hint">${f.type}</span>`;
-      d.onclick=()=>{ selectedFieldIndex=idx; fillFieldEditor(formArr[idx]); };
-      d.addEventListener("dragstart",()=>d.classList.add("dragging"));
-      d.addEventListener("dragend",()=>{ d.classList.remove("dragging"); updateFieldsFromDOM(); });
-      boxFields.appendChild(d);
-    });
-    boxFields.addEventListener("dragover",(e)=>{
-      e.preventDefault();
-      const dragging=boxFields.querySelector(".dragging"); if(!dragging) return;
-      const siblings=[...boxFields.querySelectorAll(".item:not(.dragging)")];
-      const next=siblings.find(s=>{const r=s.getBoundingClientRect(); return e.clientY <= r.top + r.height/2;});
-      boxFields.insertBefore(dragging, next||null);
-    });
-    renderFormPreview();
-  }
-  function updateFieldsFromDOM(){
-    ensureFormObject(currentFormKey);
-    const arr=currentConfig.forms[currentFormKey].fields.slice();
-    const order=[...boxFields.querySelectorAll(".item")].map(n=>Number(n.dataset.fidx));
-    currentConfig.forms[currentFormKey].fields = order.map(i=>arr[i]).filter(Boolean);
-    renderFormPreview();
-  }
-  function fillFieldEditor(f){
-    fld_type.value=f.type||"short"; fld_label.value=f.label||""; fld_ph.value=f.placeholder||"";
-    fld_req.value=String(f.required!==false); fld_max.value=f.maxLen||(f.type==="paragraph"?1000:100);
-  }
-
-  async function loadConfig(){
-    try{
-      const r=await getGuildConfig(currentGuildId);
-      currentConfig=r;
-
-      // MIGRACIÓN: asegurar id en todos los campos existentes
-      (function fixMissingFieldIds(){
-        if (!currentConfig?.forms) return;
-        let changed = false;
-        for (const [key, form] of Object.entries(currentConfig.forms)) {
-          const arr = Array.isArray(form) ? form : (form?.fields || []);
-          for (const f of arr) {
-            if (!f.id) { f.id = slugify(f.label) || `f_${Date.now().toString(36)}`; changed = true; }
-          }
-          if (Array.isArray(form)) currentConfig.forms[key] = { title: "Formulario", fields: arr };
-        }
-        if (changed) console.log("⚙️ Migrados campos sin id");
-      })();
-
-      cfg_brand_name.value=r.brand?.name||""; cfg_brand_icon.value=r.brand?.icon||"";
-      cfg_panel_banner.value=r.panel?.bannerUrl||""; cfg_panel_title.value=r.panel?.title||"";
-      cfg_color_bg.value=r.panel?.theme?.bg||"#0f0f10"; cfg_color_accent.value=r.panel?.theme?.accent||"#6e57ff"; cfg_color_text.value=r.panel?.theme?.text||"#ffffff";
-      cfg_color_bg_pick.value=toColor(cfg_color_bg.value); cfg_color_accent_pick.value=toColor(cfg_color_accent.value); cfg_color_text_pick.value=toColor(cfg_color_text.value);
-
-      fillChannelSelectors(); fillRolesSelectors(); fillCategorySelector();
-      cfg_misc_ip.value=r.misc?.serverIp||""; cfg_misc_store.value=r.misc?.tiendaUrl||"";
-
-      if(!currentConfig.buttons) currentConfig.buttons=[];
-      if(!currentConfig.forms) currentConfig.forms={ ticket_general:{ title:"Formulario", fields:[] } };
-      if(!currentConfig.categories) currentConfig.categories={};
-
-      renderButtons();
-      currentFormKey=currentConfig.buttons?.[0]?.id || "ticket_general";
-      renderFields();
+    function updateButtonsFromDOM(){
+      const ids = [...boxButtons.querySelectorAll(".item")].map(n=>Number(n.dataset.idx));
+      const arr = (currentConfig.buttons||[]).slice();
+      const reordered = ids.map(i=>arr[i]).filter(Boolean);
+      currentConfig.buttons = reordered.map((b,i)=>({ ...b, order:i+1 }));
       renderPreview(currentConfig);
-      cfgMsg.textContent="config cargada"; await snooze(900); cfgMsg.textContent="—";
-    }catch(e){ toast("No pude cargar config: "+(e.message||e),"err"); }
-  }
-  function collectConfig(){
-    currentConfig.brand={ name:cfg_brand_name.value.trim(), icon:cfg_brand_icon.value.trim() };
-    currentConfig.panel={
-      bannerUrl: cfg_panel_banner.value.trim(),
-      title: cfg_panel_title.value.trim(),
-      theme: { bg: cfg_color_bg.value.trim(), accent: cfg_color_accent.value.trim(), text: cfg_color_text.value.trim() }
-    };
-    currentConfig.channels={
-      panelChannelId: (cfg_channel_panel_sel.value||"").trim()||null,
-      logChannelId: (cfg_channel_log_sel.value||"").trim()||null,
-      ratingsChannelId: (cfg_channel_ratings_sel.value||"").trim()||null
-    };
-    currentConfig.permissions=currentConfig.permissions||{};
-    currentConfig.permissions.staffRoleId=cfg_role_staff.value||null;
-    currentConfig.permissions.highStaffRoleId=cfg_role_highstaff.value||null;
-    currentConfig.permissions.buycraftRoleId=cfg_role_buycraft.value||null;
-    currentConfig.misc={ tiendaUrl:(cfg_misc_store.value||"").trim(), serverIp:(cfg_misc_ip.value||"").trim() };
-    return currentConfig;
-  }
+    }
 
-  // color pickers link
-  function toColor(hex){ try{ const x=hex.trim(); return /^#/.test(x)?x:"#"+x.replace(/[^0-9a-f]/ig,"").slice(0,6).padEnd(6,"0"); }catch{return "#000000"} }
-  cfg_color_bg_pick.oninput=()=>{ cfg_color_bg.value=cfg_color_bg_pick.value; collectConfig(); renderPreview(currentConfig); };
-  cfg_color_accent_pick.oninput=()=>{ cfg_color_accent.value=cfg_color_accent_pick.value; collectConfig(); renderPreview(currentConfig); };
-  cfg_color_text_pick.oninput=()=>{ cfg_color_text.value=cfg_color_text_pick.value; collectConfig(); renderPreview(currentConfig); };
-  [cfg_brand_name,cfg_brand_icon,cfg_panel_banner,cfg_panel_title,cfg_color_bg,cfg_color_accent,cfg_color_text].forEach(el=>{
-    el.addEventListener("input", ()=>{ collectConfig(); renderPreview(currentConfig); });
-  });
+    function selectButton(idx){
+      selectedButtonIndex=idx;
+      const b=currentConfig.buttons[idx];
+      currentFormKey=b.id;
+      btn_id_read.textContent=b.id;
+      btn_title.value=b.title||"";
+      btn_sub.value=b.subtitle||"";
+      btn_label.value=b.label||"";
+      btn_emoji.value=b.emoji||"";
+      btn_visible.checked=b.visible!==false;
+      const catId=currentConfig?.categories?.[currentFormKey]||"";
+      btn_category_sel.value=catId||"";
+      renderFields(); renderPreview(currentConfig);
+    }
 
-  // guardar / publicar
-  btnLoadCfg.onclick=loadConfig;
-  btnSaveCfg.onclick=async()=>{ try{
-    if(!currentGuildId) return;
-    collectConfig(); await saveGuildConfig(currentGuildId,currentConfig);
-    cfgMsg.textContent="guardado ✔"; await snooze(1000); cfgMsg.textContent="—"; toast("Config guardada","ok");
-  }catch(e){ cfgMsg.textContent=e.message||"Error"; await snooze(1600); cfgMsg.textContent="—"; toast(String(e.message||e),"err"); } };
-  btnPublish.onclick=async()=>{ try{
-    if(!currentGuildId) return;
-    collectConfig(); await saveGuildConfig(currentGuildId,currentConfig); await publishGuildPanel(currentGuildId);
-    cfgMsg.textContent="Publicación solicitada ✔"; await snooze(1200); cfgMsg.textContent="—"; toast("Señal enviada al bot","ok");
-  }catch(e){ cfgMsg.textContent=e.message||"Error al publicar"; await snooze(1600); cfgMsg.textContent="—"; toast(String(e.message||e),"err"); } };
+    function renderFields(){
+      boxFields.innerHTML="";
+      ensureFormObject(currentFormKey);
+      const formArr=getFormArrayFor(currentFormKey);
+      formArr.forEach((f,idx)=>{
+        const d=document.createElement("div");
+        d.className="item"; d.draggable=true; d.dataset.fidx=idx;
+        d.innerHTML=`<span class="mono">${f.label||f.id||f.type}</span><span class="hint">${f.type}</span>`;
+        d.onclick=()=>{ selectedFieldIndex=idx; fillFieldEditor(formArr[idx]); };
+        d.addEventListener("dragstart",()=>d.classList.add("dragging"));
+        d.addEventListener("dragend",()=>{ d.classList.remove("dragging"); updateFieldsFromDOM(); });
+        boxFields.appendChild(d);
+      });
+      boxFields.addEventListener("dragover",(e)=>{
+        e.preventDefault();
+        const dragging=boxFields.querySelector(".dragging"); if(!dragging) return;
+        const siblings=[...boxFields.querySelectorAll(".item:not(.dragging)")];
+        const next=siblings.find(s=>{const r=s.getBoundingClientRect(); return e.clientY <= r.top + r.height/2;});
+        boxFields.insertBefore(dragging, next||null);
+      });
+      renderFormPreview();
+    }
 
-  // ==== NUEVO / BORRADOR ====
-  function clearButtonEditorToDraft(){
-    selectedButtonIndex = -1;
-    btn_title.value = "";
-    btn_sub.value   = "";
-    btn_label.value = "";
-    btn_emoji.value = "";
-    btn_visible.checked = true;
-    btn_category_sel.value = "";
-    btn_id_read.textContent = "(nuevo)";
-    currentFormKey = newDraftId("draftbtn");
-    ensureFormObject(currentFormKey);
-    selectedFieldIndex = -1;
-    renderFields();
-    renderFormPreview();
-    renderPreview(currentConfig);
-  }
-  function clearFieldEditorToNew(){
-    selectedFieldIndex = -1;
-    fld_type.value = "short";
-    fld_label.value = "";
-    fld_ph.value    = "";
-    fld_req.value   = "true";
-    fld_max.value   = "100";
-  }
-  btnNewButton.onclick = () => { clearButtonEditorToDraft(); toast("Editor listo para nuevo botón","ok"); };
-  btnNewField.onclick  = () => { ensureFormObject(currentFormKey); clearFieldEditorToNew(); toast("Editor de campo nuevo","ok"); };
+    function updateFieldsFromDOM(){
+      ensureFormObject(currentFormKey);
+      const arr=currentConfig.forms[currentFormKey].fields.slice();
+      const order=[...boxFields.querySelectorAll(".item")].map(n=>Number(n.dataset.fidx));
+      currentConfig.forms[currentFormKey].fields = order.map(i=>arr[i]).filter(Boolean);
+      renderFormPreview();
+    }
 
-  // botones CRUD (creación real + mover form de borrador)
-  function ensureButtons(){ if(!currentConfig.buttons) currentConfig.buttons=[]; }
-  btnSaveButton.onclick=()=>{
-    ensureButtons();
+    function fillFieldEditor(f){
+      fld_type.value=f.type||"short";
+      fld_label.value=f.label||"";
+      fld_ph.value=f.placeholder||"";
+      fld_req.value=String(f.required!==false);
+      fld_max.value=f.maxLen||(f.type==="paragraph"?1000:100);
+    }
 
-    if(selectedButtonIndex<0){
-      const base = (btn_title.value || "boton").toLowerCase().replace(/\s+/g,"_").replace(/[^a-z0-9_]/g,"");
-      const newId = (base ? `btn_${base}` : `btn_${Date.now()}`).slice(0,28);
+    async function loadConfig(){
+      try{
+        const r=await getGuildConfig(currentGuildId);
+        currentConfig=r;
+        (function(){
+          if (!currentConfig?.forms) return;
+          for (const [key, form] of Object.entries(currentConfig.forms)) {
+            const arr = Array.isArray(form) ? form : (form?.fields || []);
+            for (const f of arr) { if (!f.id) { f.id = slugify(f.label) || `f_${Date.now().toString(36)}`; } }
+            if (Array.isArray(form)) currentConfig.forms[key] = { title: "Formulario", fields: arr };
+          }
+        })();
 
-      const b={ id:newId, order:(currentConfig.buttons.length+1), title:btn_title.value.trim(), subtitle:btn_sub.value.trim(), label:btn_label.value.trim(), emoji:btn_emoji.value.trim(), visible:btn_visible.checked };
-      currentConfig.buttons.push(b);
-      currentConfig.categories=currentConfig.categories||{}; currentConfig.categories[b.id]=btn_category_sel.value||null;
+        cfg_brand_name.value=r.brand?.name||"";
+        cfg_brand_icon.value=r.brand?.icon||"";
+        cfg_panel_banner.value=r.panel?.bannerUrl||"";
+        cfg_panel_title.value=r.panel?.title||"";
+        cfg_color_bg.value=r.panel?.theme?.bg||"#0f0f10";
+        cfg_color_accent.value=r.panel?.theme?.accent||"#6e57ff";
+        cfg_color_text.value=r.panel?.theme?.text||"#ffffff";
+        cfg_color_bg_pick.value=toColor(cfg_color_bg.value);
+        cfg_color_accent_pick.value=toColor(cfg_color_accent.value);
+        cfg_color_text_pick.value=toColor(cfg_color_text.value);
 
-      // mover formulario si venimos de borrador
-      if (String(currentFormKey||"").startsWith("draftbtn_")) {
-        ensureFormObject(currentFormKey);
-        const draftForm = currentConfig.forms[currentFormKey];
-        delete currentConfig.forms[currentFormKey];
-        currentConfig.forms[b.id] = draftForm || { title:"Formulario", fields:[] };
-      } else {
-        ensureFormObject(b.id);
+        fillChannelSelectors(); fillRolesSelectors(); fillCategorySelector();
+        cfg_misc_ip.value=r.misc?.serverIp||"";
+        cfg_misc_store.value=r.misc?.tiendaUrl||"";
+
+        if(!currentConfig.buttons) currentConfig.buttons=[];
+        if(!currentConfig.forms) currentConfig.forms={ ticket_general:{ title:"Formulario", fields:[] } };
+        if(!currentConfig.categories) currentConfig.categories={};
+
+        renderButtons();
+        currentFormKey=currentConfig.buttons?.[0]?.id || "ticket_general";
+        renderFields();
+        renderPreview(currentConfig);
+
+        cfgMsg.textContent="config cargada";
+        await snooze(900);
+        cfgMsg.textContent="—";
+      }catch(e){
+        toast("No pude cargar config: "+(e.message||e),"err");
       }
+    }
 
-      currentFormKey=b.id; selectedButtonIndex=currentConfig.buttons.length-1; btn_id_read.textContent=b.id;
-    }else{
-      const b=currentConfig.buttons[selectedButtonIndex];
-      b.title=btn_title.value.trim(); b.subtitle=btn_sub.value.trim(); b.label=btn_label.value.trim(); b.emoji=btn_emoji.value.trim(); b.visible=btn_visible.checked;
+    function collectConfig(){
+      currentConfig.brand={ name:cfg_brand_name.value.trim(), icon:cfg_brand_icon.value.trim() };
+      currentConfig.panel={
+        bannerUrl: cfg_panel_banner.value.trim(),
+        title: cfg_panel_title.value.trim(),
+        theme: { bg: cfg_color_bg.value.trim(), accent: cfg_color_accent.value.trim(), text: cfg_color_text.value.trim() }
+      };
+      currentConfig.channels={
+        panelChannelId: (cfg_channel_panel_sel.value||"").trim()||null,
+        logChannelId: (cfg_channel_log_sel.value||"").trim()||null,
+        ratingsChannelId: (cfg_channel_ratings_sel.value||"").trim()||null
+      };
+      currentConfig.permissions=currentConfig.permissions||{};
+      currentConfig.permissions.staffRoleId=cfg_role_staff.value||null;
+      currentConfig.permissions.highStaffRoleId=cfg_role_highstaff.value||null;
+      currentConfig.permissions.buycraftRoleId=cfg_role_buycraft.value||null;
+      currentConfig.misc={ tiendaUrl:(cfg_misc_store.value||"").trim(), serverIp:(cfg_misc_ip.value||"").trim() };
+      return currentConfig;
+    }
+
+    function toColor(hex){
+      try{
+        const x=hex.trim();
+        return /^#/.test(x)?x:"#"+x.replace(/[^0-9a-f]/ig,"").slice(0,6).padEnd(6,"0");
+      }catch{
+        return "#000000";
+      }
+    }
+
+    cfg_color_bg_pick.oninput=()=>{ cfg_color_bg.value=cfg_color_bg_pick.value; collectConfig(); renderPreview(currentConfig); };
+    cfg_color_accent_pick.oninput=()=>{ cfg_color_accent.value=cfg_color_accent_pick.value; collectConfig(); renderPreview(currentConfig); };
+    cfg_color_text_pick.oninput=()=>{ cfg_color_text.value=cfg_color_text_pick.value; collectConfig(); renderPreview(currentConfig); };
+
+    [cfg_brand_name,cfg_brand_icon,cfg_panel_banner,cfg_panel_title,cfg_color_bg,cfg_color_accent,cfg_color_text].forEach(el=>{
+      el.addEventListener("input", ()=>{ collectConfig(); renderPreview(currentConfig); });
+    });
+
+    btnLoadCfg.onclick=loadConfig;
+
+    btnSaveCfg.onclick=async()=>{ try{
+      if(!currentGuildId) return;
+      collectConfig(); await saveGuildConfig(currentGuildId,currentConfig);
+      cfgMsg.textContent="guardado ✔";
+      await snooze(1000);
+      cfgMsg.textContent="—";
+      toast("Config guardada","ok");
+    }catch(e){
+      cfgMsg.textContent=e.message||"Error";
+      await snooze(1600);
+      cfgMsg.textContent="—";
+      toast(String(e.message||e),"err");
+    } };
+
+    btnPublish.onclick=async()=>{ try{
+      if(!currentGuildId) return;
+      collectConfig();
+      await saveGuildConfig(currentGuildId,currentConfig);
+      await publishGuildPanel(currentGuildId);
+      cfgMsg.textContent="Publicación solicitada ✔";
+      await snooze(1200);
+      cfgMsg.textContent="—";
+      toast("Señal enviada al bot","ok");
+    }catch(e){
+      cfgMsg.textContent=e.message||"Error al publicar";
+      await snooze(1600);
+      cfgMsg.textContent="—";
+      toast(String(e.message||e),"err");
+    } };
+
+    function clearButtonEditorToDraft(){
+      selectedButtonIndex = -1;
+      btn_title.value = "";
+      btn_sub.value   = "";
+      btn_label.value = "";
+      btn_emoji.value = "";
+      btn_visible.checked = true;
+      btn_category_sel.value = "";
+      btn_id_read.textContent = "(nuevo)";
+      currentFormKey = newDraftId("draftbtn");
+      ensureFormObject(currentFormKey);
+      selectedFieldIndex = -1;
+      renderFields();
+      renderFormPreview();
+      renderPreview(currentConfig);
+    }
+
+    function clearFieldEditorToNew(){
+      selectedFieldIndex = -1;
+      fld_type.value = "short";
+      fld_label.value = "";
+      fld_ph.value    = "";
+      fld_req.value   = "true";
+      fld_max.value   = "100";
+    }
+
+    btnNewButton.onclick = () => { clearButtonEditorToDraft(); toast("Editor listo para nuevo botón","ok"); };
+    btnNewField.onclick  = () => { ensureFormObject(currentFormKey); clearFieldEditorToNew(); toast("Editor de campo nuevo","ok"); };
+
+    function ensureButtons(){ if(!currentConfig.buttons) currentConfig.buttons=[]; }
+
+    btnSaveButton.onclick=()=>{
+      ensureButtons();
+      if(selectedButtonIndex<0){
+        const base = (btn_title.value || "boton").toLowerCase().replace(/\s+/g,"_").replace(/[^a-z0-9_]/g,"");
+        const newId = (base ? `btn_${base}` : `btn_${Date.now()}`).slice(0,28);
+        const b={ id:newId, order:(currentConfig.buttons.length+1), title:btn_title.value.trim(), subtitle:btn_sub.value.trim(), label:btn_label.value.trim(), emoji:btn_emoji.value.trim(), visible:btn_visible.checked };
+        currentConfig.buttons.push(b);
+        currentConfig.categories=currentConfig.categories||{}; currentConfig.categories[b.id]=btn_category_sel.value||null;
+        if (String(currentFormKey||"").startsWith("draftbtn_")) {
+          ensureFormObject(currentFormKey);
+          const draftForm = currentConfig.forms[currentFormKey];
+          delete currentConfig.forms[currentFormKey];
+          currentConfig.forms[b.id] = draftForm || { title:"Formulario", fields:[] };
+        } else {
+          ensureFormObject(b.id);
+        }
+        currentFormKey=b.id; selectedButtonIndex=currentConfig.buttons.length-1; btn_id_read.textContent=b.id;
+      }else{
+        const b=currentConfig.buttons[selectedButtonIndex];
+        b.title=btn_title.value.trim(); b.subtitle=btn_sub.value.trim(); b.label=btn_label.value.trim(); b.emoji=btn_emoji.value.trim(); b.visible=btn_visible.checked;
+        currentConfig.categories[currentFormKey]=btn_category_sel.value||null;
+      }
+      renderButtons(); renderFields(); renderPreview(currentConfig);
+      toast("Botón guardado","ok");
+    };
+
+    btnDelButton.onclick=()=>{
+      if(selectedButtonIndex<0) return;
+      const removed=currentConfig.buttons.splice(selectedButtonIndex,1)[0];
+      if(removed?.id && currentConfig.forms) delete currentConfig.forms[removed.id];
+      if(removed?.id && currentConfig.categories) delete currentConfig.categories[removed.id];
+      selectedButtonIndex=-1; currentFormKey=currentConfig.buttons?.[0]?.id || "ticket_general";
+      btn_id_read.textContent="—"; btn_title.value=""; btn_sub.value=""; btn_label.value=""; btn_emoji.value="";
+      renderButtons(); renderFields(); renderPreview(currentConfig);
+    };
+
+    btn_category_sel.onchange=()=>{
+      currentConfig.categories=currentConfig.categories||{};
       currentConfig.categories[currentFormKey]=btn_category_sel.value||null;
+    };
+
+    btnAddTplButton.onclick = () => {
+      const v = tpl_buttons.value;
+      if (!v) return;
+      clearButtonEditorToDraft();
+      const presets = {
+        general:   { title: "Soporte general", subtitle: "Ayuda en general", label: "💬 Soporte", emoji: "💬" },
+        compras:   { title: "Soporte compras", subtitle: "Pagos/Buycraft",   label: "🛒 Compras", emoji: "🛒" },
+        reclamos:  { title: "Reclamos",        subtitle: "Reporta al staff", label: "⚠️ Reclamo", emoji: "⚠️" },
+        apelaciones:{title: "Apelaciones",     subtitle: "Solicita revisión",label: "📩 Apelar",  emoji: "📩" }
+      };
+      const p = presets[v]; if (!p) return;
+      btn_title.value = p.title; btn_sub.value = p.subtitle; btn_label.value = p.label; btn_emoji.value = p.emoji;
+
+      ensureFormObject(currentFormKey);
+      currentConfig.forms[currentFormKey].fields.push(
+        { id: slugify("¿Nombre de usuario?"), type: "short", label: "¿Nombre de usuario?", placeholder: "Tu nick", required: true, maxLen: 100 },
+        { id: slugify("Describe tu problema"), type: "paragraph", label: "Describe tu problema", placeholder: "Cuéntanos brevemente…", required: true, maxLen: 1000 }
+      );
+      renderFields(); renderFormPreview(); renderPreview(currentConfig);
+      toast("Plantilla cargada. Ahora guarda el botón.","ok");
+    };
+
+    btnSaveField.onclick=()=>{
+      ensureFormObject(currentFormKey);
+      const existing = selectedFieldIndex>=0 ? currentConfig.forms[currentFormKey].fields[selectedFieldIndex] : null;
+      const id = existing?.id || slugify(fld_label.value) || `f_${Date.now().toString(36)}`;
+      const field = {
+        id,
+        type: fld_type.value,
+        label: fld_label.value.trim() || (fld_type.value==="paragraph"?"Descripción":"Texto"),
+        placeholder: fld_ph.value.trim(),
+        required: fld_req.value==="true",
+        maxLen: Number(fld_max.value)|| (fld_type.value==="paragraph"?1000:100)
+      };
+      if(selectedFieldIndex<0){
+        currentConfig.forms[currentFormKey].fields.push(field);
+        selectedFieldIndex=currentConfig.forms[currentFormKey].fields.length-1;
+      }else{
+        currentConfig.forms[currentFormKey].fields[selectedFieldIndex]=field;
+      }
+      renderFields(); renderFormPreview(); toast("Campo guardado","ok");
+    };
+
+    btnDelField.onclick=()=>{
+      if(selectedFieldIndex<0) return;
+      const arr=currentConfig.forms[currentFormKey].fields; arr.splice(selectedFieldIndex,1);
+      selectedFieldIndex=-1; renderFields(); renderFormPreview();
+    };
+
+    btnAddTplFields.onclick=()=>{
+      const v=tpl_fields.value; if(!v) return;
+      ensureFormObject(currentFormKey);
+      const add=(arr)=>{ currentConfig.forms[currentFormKey].fields.push(...arr); renderFields(); renderFormPreview(); };
+      const short=(label,ph,req=true,max=100)=>({id: slugify(label), type:"short", label, placeholder:ph, required:req, maxLen:max});
+      const para =(label,ph,req=true,max=1000)=>({id: slugify(label), type:"paragraph", label, placeholder:ph, required:req, maxLen:max});
+      const packs={
+        campos_basicos: [ short("¿Nombre de usuario?","Tu nick"), para("Describe tu problema","Cuéntanos brevemente...") ],
+        compras: [ short("ID/Pedido de compra","ABC123"), short("Método de pago","Tarjeta/PayPal/etc."), para("Pruebas (links o descripción)","Adjunta capturas o explica") ],
+        reclamo_staff: [ short("Staff implicado","Nombre del staff"), para("Evidencia","Explica y/o adjunta links") ],
+        apelacion: [ short("¿Quién te sancionó?","Nombre/mod"), para("¿Por qué deberían aceptarla?","Explica con detalle") ]
+      };
+      add(packs[v]||[]);
+    };
+
+    [cfg_brand_name,cfg_brand_icon,cfg_panel_banner,cfg_panel_title,cfg_color_bg,cfg_color_accent,cfg_color_text].forEach(el=>{
+      el.addEventListener("input",()=>{ collectConfig(); renderPreview(currentConfig); });
+    });
+
+    $("btnAdmCreateUser").onclick=async()=>{ try{
+      await adminCreateUser({ username:$("adm_u_user").value.trim(), password:$("adm_u_pass").value, isAdmin:$("adm_u_isadmin").value==="true" });
+      $("adm_user_msg").textContent="Creado ✔";
+      toast("Usuario creado","ok");
+      await snooze(1000);
+      $("adm_user_msg").textContent="—";
+    }catch(e){
+      $("adm_user_msg").textContent=e.message||"Error";
+      toast(String(e.message||e),"err");
+    } };
+
+    $("btnAdmCreateBot").onclick=async()=>{ try{
+      const r=await createBot($("adm_b_name").value.trim());
+      toast("Bot creado","ok");
+      $("adm_apiKey_box").textContent=r?.bot?.apiKey||"—";
+      await refreshBotsList();
+    }catch(e){
+      toast(String(e.message||e),"err");
+    } };
+
+    async function refreshBotsList(){
+      const r=await listBots();
+      $("adm_b_sel").innerHTML="";
+      (r.bots||[]).forEach(b=>{
+        const o=document.createElement("option");
+        o.value=b.id; o.textContent=`${b.name} (${b.id.slice(0,6)})`;
+        $("adm_b_sel").appendChild(o);
+      });
     }
-    renderButtons(); renderFields(); renderPreview(currentConfig);
-    toast("Botón guardado","ok");
-  };
-  btnDelButton.onclick=()=>{
-    if(selectedButtonIndex<0) return;
-    const removed=currentConfig.buttons.splice(selectedButtonIndex,1)[0];
-    if(removed?.id && currentConfig.forms) delete currentConfig.forms[removed.id];
-    if(removed?.id && currentConfig.categories) delete currentConfig.categories[removed.id];
-    selectedButtonIndex=-1; currentFormKey=currentConfig.buttons?.[0]?.id || "ticket_general";
-    btn_id_read.textContent="—"; btn_title.value=""; btn_sub.value=""; btn_label.value=""; btn_emoji.value="";
-    renderButtons(); renderFields(); renderPreview(currentConfig);
-  };
-  btn_category_sel.onchange=()=>{
-    currentConfig.categories=currentConfig.categories||{};
-    currentConfig.categories[currentFormKey]=btn_category_sel.value||null;
-  };
 
-  // plantillas de botones
-  btnAddTplButton.onclick = () => {
-    const v = tpl_buttons.value;
-    if (!v) return;
-    clearButtonEditorToDraft();
-    const presets = {
-      general:   { title: "Soporte general", subtitle: "Ayuda en general", label: "💬 Soporte", emoji: "💬" },
-      compras:   { title: "Soporte compras", subtitle: "Pagos/Buycraft",   label: "🛒 Compras", emoji: "🛒" },
-      reclamos:  { title: "Reclamos",        subtitle: "Reporta al staff", label: "⚠️ Reclamo", emoji: "⚠️" },
-      apelaciones:{title: "Apelaciones",     subtitle: "Solicita revisión",label: "📩 Apelar",  emoji: "📩" }
-    };
-    const p = presets[v]; if (!p) return;
-    btn_title.value = p.title; btn_sub.value = p.subtitle; btn_label.value = p.label; btn_emoji.value = p.emoji;
+    $("btnAdmListBots").onclick=refreshBotsList;
 
-    ensureFormObject(currentFormKey);
-    currentConfig.forms[currentFormKey].fields.push(
-      { id: slugify("¿Nombre de usuario?"), type: "short", label: "¿Nombre de usuario?", placeholder: "Tu nick", required: true, maxLen: 100 },
-      { id: slugify("Describe tu problema"), type: "paragraph", label: "Describe tu problema", placeholder: "Cuéntanos brevemente…", required: true, maxLen: 1000 }
-    );
-    renderFields(); renderFormPreview(); renderPreview(currentConfig);
-    toast("Plantilla cargada. Ahora guarda el botón.","ok");
-  };
+    $("btnAdmAssignOwner").onclick=async()=>{ try{
+      const sel=$("adm_b_sel"); if(!sel.value) return;
+      await assignBotOwner(sel.value, $("adm_b_owner").value.trim());
+      $("adm_bot_msg").textContent="Asignado ✔";
+      toast("Dueño asignado","ok");
+      await snooze(1000);
+      $("adm_bot_msg").textContent="—";
+    }catch(e){
+      $("adm_bot_msg").textContent=e.message||"Error";
+      toast(String(e.message||e),"err");
+    } };
 
-  // fields CRUD (con id garantizado)
-  btnSaveField.onclick=()=>{
-    ensureFormObject(currentFormKey);
-
-    const existing = selectedFieldIndex>=0
-      ? currentConfig.forms[currentFormKey].fields[selectedFieldIndex]
-      : null;
-
-    const id = existing?.id || slugify(fld_label.value) || `f_${Date.now().toString(36)}`;
-
-    const field = {
-      id,
-      type: fld_type.value,
-      label: fld_label.value.trim() || (fld_type.value==="paragraph"?"Descripción":"Texto"),
-      placeholder: fld_ph.value.trim(),
-      required: fld_req.value==="true",
-      maxLen: Number(fld_max.value)|| (fld_type.value==="paragraph"?1000:100)
-    };
-
-    if(selectedFieldIndex<0){
-      currentConfig.forms[currentFormKey].fields.push(field);
-      selectedFieldIndex=currentConfig.forms[currentFormKey].fields.length-1;
-    }else{
-      currentConfig.forms[currentFormKey].fields[selectedFieldIndex]=field;
+    async function reloadTables(){
+      if(!isAdmin) return;
+      tablesMsg.textContent="Cargando…";
+      try{
+        const r=await adminTables();
+        snapshotTables={ users:r.users||[], bots:r.bots||[], guilds:r.guilds||[] };
+        paintTables((searchTablesEl.value||"").trim());
+        tablesMsg.textContent="Listo ✔";
+      }catch(e){
+        tablesMsg.textContent="Error";
+        toast(String(e.message||e),"err");
+      }
     }
-    renderFields(); renderFormPreview(); toast("Campo guardado","ok");
-  };
-  btnDelField.onclick=()=>{
-    if(selectedFieldIndex<0) return;
-    const arr=currentConfig.forms[currentFormKey].fields; arr.splice(selectedFieldIndex,1);
-    selectedFieldIndex=-1; renderFields(); renderFormPreview();
-  };
 
-  // plantillas de campos
-  btnAddTplFields.onclick=()=>{
-    const v=tpl_fields.value; if(!v) return;
-    ensureFormObject(currentFormKey);
-    const add=(arr)=>{ currentConfig.forms[currentFormKey].fields.push(...arr); renderFields(); renderFormPreview(); };
-    const short=(label,ph,req=true,max=100)=>({id: slugify(label), type:"short", label, placeholder:ph, required:req, maxLen:max});
-    const para =(label,ph,req=true,max=1000)=>({id: slugify(label), type:"paragraph", label, placeholder:ph, required:req, maxLen:max});
-    const packs={
-      campos_basicos: [ short("¿Nombre de usuario?","Tu nick"), para("Describe tu problema","Cuéntanos brevemente...") ],
-      compras: [ short("ID/Pedido de compra","ABC123"), short("Método de pago","Tarjeta/PayPal/etc."), para("Pruebas (links o descripción)","Adjunta capturas o explica") ],
-      reclamo_staff: [ short("Staff implicado","Nombre del staff"), para("Evidencia","Explica y/o adjunta links") ],
-      apelacion: [ short("¿Quién te sancionó?","Nombre/mod"), para("¿Por qué deberían aceptarla?","Explica con detalle") ]
+    function paintTables(filter){
+      const f=String(filter||"").toLowerCase();
+      const pass=(obj)=>!f||JSON.stringify(obj).toLowerCase().includes(f);
+
+      tblUsers.innerHTML="";
+      snapshotTables.users.filter(pass).forEach(u=>{
+        const tr=document.createElement("tr");
+        tr.innerHTML=`
+          <td class="mono">${u.id||""}</td>
+          <td>${u.username||""}</td>
+          <td>${u.isAdmin? "true":"false"}</td>
+          <td><button class="btn bad small" data-act="del-user" data-id="${u.id}">Borrar</button></td>`;
+        tblUsers.appendChild(tr);
+      });
+
+      tblBots.innerHTML="";
+      snapshotTables.bots.filter(pass).forEach(b=>{
+        const key=b.apiKey||"";
+        const short=key?`${key.slice(0,6)}…${key.slice(-4)}`:"";
+        const tr=document.createElement("tr");
+        tr.innerHTML=`
+          <td class="mono">${b.id||""}</td>
+          <td>${b.name||""}</td>
+          <td class="mono">${b.ownerUserId||""}</td>
+          <td class="mono" title="${key}">${short}</td>
+          <td><button class="btn bad small" data-act="del-bot" data-id="${b.id}">Borrar</button></td>`;
+        tblBots.appendChild(tr);
+      });
+
+      tblGuilds.innerHTML="";
+      snapshotTables.guilds.filter(pass).forEach(g=>{
+        const tr=document.createElement("tr");
+        tr.innerHTML=`
+          <td class="mono">${g.guildId||""}</td>
+          <td class="mono">${g.botId||""}</td>
+          <td>${g.name||""}</td>
+          <td><button class="btn bad small" data-act="del-guild" data-id="${g.guildId}">Borrar</button></td>`;
+        tblGuilds.appendChild(tr);
+      });
+
+      tblUsers.querySelectorAll("[data-act]").forEach(b=>b.onclick=onTableAction);
+      tblBots.querySelectorAll("[data-act]").forEach(b=>b.onclick=onTableAction);
+      tblGuilds.querySelectorAll("[data-act]").forEach(b=>b.onclick=onTableAction);
+    }
+
+    async function onTableAction(ev){
+      const el=ev.currentTarget; const act=el.dataset.act; const id=el.dataset.id;
+      try{
+        if(act==="del-user"){
+          if(!confirm("¿Borrar usuario?")) return;
+          await adminDeleteUser(id);
+          toast("Usuario borrado","ok");
+          await reloadTables();
+        }else if(act==="del-bot"){
+          if(!confirm("¿Borrar bot? Esto puede desvincular sus guilds.")) return;
+          await adminDeleteBot(id);
+          toast("Bot borrado","ok");
+          await reloadTables();
+        }else if(act==="del-guild"){
+          if(!confirm("¿Borrar guild del sistema?")) return;
+          await adminDeleteGuild(id);
+          toast("Guild borrado","ok");
+          await reloadTables();
+        }
+      }catch(e){
+        tablesMsg.textContent="Error";
+        toast(String(e.message||e),"err");
+      }
+    }
+
+    btnReloadTables.onclick=()=>reloadTables();
+
+    btnExport.onclick=async()=>{
+      try{
+        tablesMsg.textContent="Cargando…";
+        const data=await adminExport();
+        const name=`export_${new Date().toISOString().replace(/[:.]/g,"-")}.json`;
+        blobDownload(JSON.stringify(data,null,2), name);
+        toast("Exportado","ok");
+        tablesMsg.textContent="Listo ✔";
+      }catch(e){
+        tablesMsg.textContent="Error";
+        toast(String(e.message||e),"err");
+      }
     };
-    add(packs[v]||[]);
-  };
 
-  // escuchar cambios de color para preview
-  [cfg_brand_name,cfg_brand_icon,cfg_panel_banner,cfg_panel_title,cfg_color_bg,cfg_color_accent,cfg_color_text].forEach(el=>{
-    el.addEventListener("input",()=>{ collectConfig(); renderPreview(currentConfig); });
-  });
+    fileImport.onchange=async(e)=>{
+      const file=e.target.files&&e.target.files[0]; if(!file) return;
+      try{
+        const text=await file.text();
+        const json=JSON.parse(text);
+        if(!confirm("¿Sobrescribir datos actuales con el JSON importado?")) return;
+        tablesMsg.textContent="Cargando…";
+        await adminImport(json);
+        toast("Importado","ok");
+        await reloadTables();
+      }catch(err){
+        tablesMsg.textContent="Error";
+        toast(String(err.message||err),"err");
+      }finally{
+        fileImport.value="";
+      }
+    };
 
-  // ==== ADMIN ====
-  $("btnAdmCreateUser").onclick=async()=>{ try{
-    await adminCreateUser({ username:$("adm_u_user").value.trim(), password:$("adm_u_pass").value, isAdmin:$("adm_u_isadmin").value==="true" });
-    $("adm_user_msg").textContent="Creado ✔"; toast("Usuario creado","ok"); await snooze(1000); $("adm_user_msg").textContent="—";
-  }catch(e){ $("adm_user_msg").textContent=e.message||"Error"; toast(String(e.message||e),"err"); } };
+    searchTablesEl.addEventListener("input",()=>paintTables(searchTablesEl.value));
 
-  $("btnAdmCreateBot").onclick=async()=>{ try{
-    const r=await createBot($("adm_b_name").value.trim());
-    toast("Bot creado","ok"); $("adm_apiKey_box").textContent=r?.bot?.apiKey||"—";
-    await refreshBotsList();
-  }catch(e){ toast(String(e.message||e),"err"); } };
-
-  async function refreshBotsList(){
-    const r=await listBots(); $("adm_b_sel").innerHTML="";
-    (r.bots||[]).forEach(b=>{ const o=document.createElement("option"); o.value=b.id; o.textContent=`${b.name} (${b.id.slice(0,6)})`; $("adm_b_sel").appendChild(o); });
-  }
-  $("btnAdmListBots").onclick=refreshBotsList;
-
-  $("btnAdmAssignOwner").onclick=async()=>{ try{
-    const sel=$("adm_b_sel"); if(!sel.value) return;
-    await assignBotOwner(sel.value, $("adm_b_owner").value.trim());
-    $("adm_bot_msg").textContent="Asignado ✔"; toast("Dueño asignado","ok"); await snooze(1000); $("adm_bot_msg").textContent="—";
-  }catch(e){ $("adm_bot_msg").textContent=e.message||"Error"; toast(String(e.message||e),"err"); } };
-
-  // ==== init ====
-  if(isLogged()) afterLogin();
-  gateUI();
-</script>
+    if(isLogged()) afterLogin();
+    gateUI();
+  </script>
 </body>
 </html>
+
