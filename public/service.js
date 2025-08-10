@@ -20,15 +20,10 @@ function getApiFromEnvJs() {
     ? String(window.ENV_API_BASE_URL).replace(/\/+$/, "")
     : null;
 }
-const DEFAULT_API_FALLBACK = "http://localhost:3001";
+const DEFAULT_API_FALLBACK = "http://127.0.0.1:3001";
 
 function resolveBaseUrl() {
-  return (
-    getApiFromQuery() ||
-    getApiFromLocalStorage() ||
-    getApiFromEnvJs() ||
-    DEFAULT_API_FALLBACK
-  );
+  return getApiFromQuery() || getApiFromLocalStorage() || getApiFromEnvJs() || DEFAULT_API_FALLBACK;
 }
 BASE_URL = resolveBaseUrl();
 
@@ -73,12 +68,12 @@ async function request(path, { method = "GET", body, token = ADMIN_TOKEN, apiKey
 export function health() { return request("/health", { token: null }); }
 
 export async function login(username, password) {
-  const data = await request("/api/auth/login", { method: "POST", body: { username, password }, token: null });
+  const data = await request("/api/session/login", { method: "POST", body: { username, password }, token: null });
   if (data?.token) setToken(data.token);
   return data;
 }
 export async function loginUser(username, password) {
-  const data = await request("/api/auth/login_user", { method: "POST", body: { username, password }, token: null });
+  const data = await request("/api/session/login_user", { method: "POST", body: { username, password }, token: null });
   if (data?.token) setToken(data.token);
   return data;
 }
