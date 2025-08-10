@@ -20,10 +20,16 @@ function getApiFromEnvJs() {
     ? String(window.ENV_API_BASE_URL).replace(/\/+$/, "")
     : null;
 }
-const DEFAULT_API_FALLBACK = "http://127.0.0.1:3001";
-
+function smartDefaultBase() {
+  try {
+    const h = window.location.hostname || "";
+    if (h === "localhost" || h === "127.0.0.1") return "http://127.0.0.1:3001";
+    if (/netlify\.app$/i.test(h)) return "https://ticket-backend-ipoq.onrender.com";
+    return "";
+  } catch { return ""; }
+}
 function resolveBaseUrl() {
-  return getApiFromQuery() || getApiFromLocalStorage() || getApiFromEnvJs() || DEFAULT_API_FALLBACK;
+  return getApiFromQuery() || getApiFromLocalStorage() || getApiFromEnvJs() || smartDefaultBase();
 }
 BASE_URL = resolveBaseUrl();
 
