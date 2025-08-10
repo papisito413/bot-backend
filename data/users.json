@@ -1,0 +1,20 @@
+[
+  {
+    "id": "admin",
+    "username": "admin",
+    "passHash": "$2b$10$RZMZqjNYGuuWJwpW/c.44OQBsedm8ILgTDFL8yDBhyGOMwqk4JsPG",
+    "isAdmin": true
+  },
+  {
+    "id": "ae6b93c0-3094-47d9-8867-cfda7843a3a2",
+    "username": "tyler",
+    "passHash": "$2b$10$ItkgkF6qPSbN4uHlxYHX3OeX/mGG8ZFhTIZf.VCgcf06aaP6PKqQi",
+    "isAdmin": false
+  },
+  {
+    "id": "58205064-bdb5-4496-b3f3-a8db1de9e616",
+    "username": "test",
+    "passHash": "$2b$10$909pc/ftjmOWnI6SGIyrz.97lGXTVUE7Nzfn4Pj7gxHWt5BtPtptC",
+    "isAdmin": false
+  }
+]

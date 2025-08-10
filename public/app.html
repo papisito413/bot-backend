@@ -1,0 +1,970 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>TicketBot • Dashboard</title>
+<style>
+  :root{
+    --bg:#0b0c10; --card:#12141b; --muted:#8b93a7; --text:#e7e9ef;
+    --accent:#6e57ff; --good:#3ac279; --warn:#ffb020; --bad:#ff5d5d;
+    --ring: rgba(110,87,255,.35);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:linear-gradient(180deg,#0b0c10 0%,#0d0f17 100%);color:var(--text);font:13px/1.35 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial}
+
+  /* Layout */
+  .wrap{max-width:1200px;margin:18px auto;padding:0 14px}
+  header{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-bottom:14px}
+  .brand{display:flex;align-items:center;gap:10px}
+  .brand .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 18px var(--accent)}
+  h1{margin:0;font-size:18px;font-weight:800;letter-spacing:.3px}
+  .top-right{display:flex;gap:8px;align-items:center}
+
+  /* Pills & buttons */
+  .pill{padding:6px 9px;border-radius:999px;background:#0f1220;border:1px solid #1a1e2e;color:#cbd3ea}
+  .pill.badge{background:#101427}
+  .btn{appearance:none;border:1px solid #232842;background:#161a2e;color:#dfe5ff;border-radius:10px;padding:9px 10px;font-weight:700;cursor:pointer}
+  .btn:hover{border-color:#2d355c}
+  .btn.acc{background:linear-gradient(180deg,#6e57ff 0%,#5a46e6 100%);border-color:#6e57ff;color:white}
+  .btn.good{background:linear-gradient(180deg,#34c27c,#2aa565);border-color:#34c27c;color:white}
+  .btn.bad{background:#2a1216;border-color:#54242b;color:#ffcbcb}
+  .btn.small{padding:6px 8px;font-size:12px}
+  .hint{color:var(--muted);font-size:11px}
+  .hint.right{margin-left:auto}
+
+  /* Cards & grids */
+  .card{background:rgba(18,20,27,.88);border:1px solid #24283a;border-radius:14px;padding:12px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+  .grid{display:grid;gap:10px}
+  .g2{grid-template-columns:1.05fr .95fr}
+  .g2-50{grid-template-columns:1fr 1fr}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  @media (max-width:1100px){.g2,.g2-50,.g3{grid-template-columns:1fr}}
+
+  label{display:block;margin:6px 0 5px;color:#b6bfd6;font-size:11px}
+  input,select,textarea{
+    width:100%;padding:9px 10px;border-radius:10px;border:1px solid #22273a;background:#0f1220;color:#e7e9ef;
+    outline:none;box-shadow:0 0 0 0 transparent;transition:.2s border,.2s box-shadow
+  }
+  input:focus,select:focus,textarea:focus{border-color:#36407a;box-shadow:0 0 0 6px var(--ring)}
+  textarea{min-height:84px;resize:vertical}
+  .row{display:flex;gap:8px;align-items:center}
+  .section-title{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+  h2{margin:0;font-size:15px}
+  .hidden{display:none !important}
+  .mono{font-family:ui-monospace,Menlo,Consolas,monospace}
+  .hr{height:1px;background:#22263a;margin:10px 0}
+  .kbd{padding:2px 6px;border-radius:6px;border:1px solid #2c345a;background:#12162b;color:#dbe0ff;font-size:11px}
+
+  /* Tabs */
+  .tabs{display:flex;gap:8px;margin-bottom:10px}
+  .tab{flex:0 0 auto;padding:8px 12px;border-radius:10px;border:1px solid #252a3f;background:#12162b;color:#cfd6ff;cursor:pointer;font-weight:700}
+  .tab.active{background:linear-gradient(180deg,#6e57ff,#4e3fe1);border-color:#6e57ff;color:#fff}
+
+  /* Lists */
+  .list{height:148px;overflow:auto;border:1px dashed #28304d;border-radius:10px;padding:8px;background:#0d1020}
+  .list .item{display:flex;justify-content:space-between;align-items:center;padding:6px 8px;border-radius:8px;cursor:grab}
+  .list .item:hover{background:#131841}
+  .dragging{opacity:.55}
+
+  .welcome{
+    background:linear-gradient(135deg,rgba(110,87,255,.15),rgba(58,194,121,.1));
+    border:1px solid #2a2f4b;border-radius:12px;padding:9px 10px;display:flex;justify-content:space-between;gap:10px;align-items:center
+  }
+  .titlebar{display:flex;align-items:center;gap:10px}
+  .titlebar .avatar{width:26px;height:26px;border-radius:50%;background:#1a1e2e;display:inline-flex;align-items:center;justify-content:center}
+  .subtitle{font-size:11px;color:#aeb6d3}
+  .footnote{font-size:11px;color:#aeb6d3;margin-top:6px}
+
+  /* Color pickers row */
+  .colorrow{display:grid;grid-template-columns:1fr auto;gap:8px}
+  .colorcell{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center}
+  .colorcell input[type=color]{width:40px;height:30px;border:none;background:transparent;padding:0}
+
+  /* PREVIEW: panel */
+  #livePreview { padding: 0; }
+  .pv-wrap{background:var(--pv-bg,#0f0f10);color:var(--pv-text,#fff);border:1px solid #24283a;border-radius:12px;overflow:hidden}
+  .pv-banner{position:relative;height:160px;background:#171a24}
+  .pv-banner img{width:100%;height:100%;object-fit:cover;opacity:.9;display:block}
+  .pv-title{position:absolute;left:16px;bottom:10px;font-weight:900;font-size:18px;text-shadow:0 2px 16px rgba(0,0,0,.6)}
+  .pv-sections{padding:10px}
+  .pv-row{display:flex;align-items:center;justify-content:space-between;padding:9px;border-radius:10px;border:1px solid #262b44;background:rgba(18,18,28,.5)}
+  .pv-row+.pv-row{margin-top:6px}
+  .pv-info{display:flex;gap:10px;align-items:flex-start}
+  .pv-emoji{font-size:18px;line-height:22px}
+  .pv-h{font-weight:800;font-size:13px}
+  .pv-sub{font-size:11px;opacity:.82}
+  .pv-btn{background:var(--pv-accent,#6e57ff);border:0;color:#fff;border-radius:9px;padding:7px 10px;font-weight:800;cursor:pointer}
+  .pv-btn:hover{opacity:.95}
+
+  /* PREVIEW: form */
+  #formPreview .field{border:1px solid #262b44;background:#121528;border-radius:10px;padding:8px}
+  #formPreview .field+.field{margin-top:6px}
+  #formPreview .flabel{font-size:11px;color:#bfc7e9;margin-bottom:4px}
+  #formPreview .finput{height:28px;border-radius:8px;border:1px solid #2b3050;background:#0f1220;color:#e7e9ef;padding:6px 8px}
+  #formPreview .ftextarea{min-height:64px;border-radius:8px;border:1px solid #2b3050;background:#0f1220;color:#e7e9ef;padding:6px 8px}
+
+  /* Toasts */
+  #toasts{position:fixed;right:16px;bottom:16px;display:flex;flex-direction:column;gap:8px;z-index:50}
+  .toast{background:#0f1220;border:1px solid #283055;color:#e7e9ef;border-radius:10px;padding:8px 10px;opacity:0;transform:translateY(6px);transition:.25s}
+  .toast.ok{border-color:#2f915d}
+  .toast.err{border-color:#a44}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <div class="dot"></div>
+      <h1>TicketBot • Dashboard</h1>
+    </div>
+    <div class="top-right">
+      <span id="welcomeBadge" class="pill badge hidden">Hola</span>
+      <button id="btnLogout" class="btn small hidden">Cerrar sesión</button>
+    </div>
+  </header>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button id="tabBot" class="tab active">Bot</button>
+    <button id="tabAdmin" class="tab">Admin</button>
+  </div>
+
+  <!-- CONEXIÓN + LOGIN -->
+  <section class="grid g2-50">
+    <div class="card">
+      <div class="section-title"><h2>Conexión</h2><span class="hint">URL de tu backend</span></div>
+      <label>API Base URL</label>
+      <input id="inBaseUrl" placeholder="http://localhost:3001" />
+      <div class="row" style="margin-top:8px">
+        <button id="btnSaveBase" class="btn">Guardar</button>
+        <span id="connState" class="hint right">—</span>
+      </div>
+      <div class="footnote">Si cambias de servidor, actualiza y vuelve a iniciar sesión.</div>
+    </div>
+
+    <div class="card">
+      <div class="section-title"><h2>Login</h2></div>
+      <div class="grid g2-50">
+        <div>
+          <label>Usuario (ADMIN)</label>
+          <input id="inAdminUser" value="admin" />
+          <label>Contraseña</label>
+          <input id="inAdminPass" type="password" placeholder="••••••" />
+          <div class="row" style="margin-top:8px">
+            <button id="btnLoginAdmin" class="btn acc">Entrar (ADMIN)</button>
+          </div>
+        </div>
+        <div>
+          <label>Usuario (CLIENTE)</label>
+          <input id="inClientUser" placeholder="cliente01" />
+          <label>Contraseña</label>
+          <input id="inClientPass" type="password" placeholder="••••••" />
+          <div class="row" style="margin-top:8px">
+            <button id="btnLoginClient" class="btn">Entrar (CLIENTE)</button>
+          </div>
+        </div>
+      </div>
+      <div id="loginTip" class="footnote">Arriba verás tu usuario/rol tras iniciar.</div>
+    </div>
+  </section>
+
+  <!-- BIENVENIDA -->
+  <section id="secWelcome" class="welcome hidden" style="margin-top:12px">
+    <div class="titlebar">
+      <div class="avatar">👋</div>
+      <div>
+        <div id="welcomeTitle"><b>Bienvenido</b></div>
+        <div class="subtitle" id="welcomeSubtitle">El admin enciende el bot. Aquí configuras todo.</div>
+      </div>
+    </div>
+    <div class="row"><span id="roleBadge" class="pill badge">—</span></div>
+  </section>
+
+  <!-- MIS BOTS / GUILDS -->
+  <section id="secBotsGuilds" class="card hidden" style="margin-top:12px">
+    <div class="section-title">
+      <h2>Mis Bots / Guilds</h2>
+      <span class="hint right">Elige el servidor a configurar</span>
+    </div>
+    <div class="grid g3">
+      <div>
+        <label>Mis bots</label>
+        <select id="selMyBots"></select>
+      </div>
+      <div>
+        <label>Mis guilds (del bot)</label>
+        <select id="selMyGuilds"></select>
+      </div>
+      <div class="grid g2-50">
+        <div>
+          <label>&nbsp;</label>
+          <button id="btnReloadRoles" class="btn" title="Leer roles del backend">Actualizar roles</button>
+        </div>
+        <div>
+          <label>&nbsp;</label>
+          <button id="btnReloadChannels" class="btn" title="Leer canales del backend">Actualizar canales</button>
+        </div>
+      </div>
+    </div>
+    <div class="footnote">
+      Roles y canales se actualizan cuando el <b>bot está encendido</b> y los envía al backend.
+    </div>
+  </section>
+
+  <!-- VISTA BOT -->
+  <section id="viewBot" class="grid g2 hidden" style="margin-top:12px">
+    <!-- IZQUIERDA: Editor -->
+    <div class="card">
+      <div class="section-title">
+        <h2>Editor de Config</h2>
+        <span class="hint right">Branding, canales, roles, botones y formularios</span>
+      </div>
+
+      <div class="grid g3">
+        <div><label>Brand</label><input id="cfg_brand_name" placeholder="Service Bot"></div>
+        <div><label>Icon URL</label><input id="cfg_brand_icon" placeholder="https://..."></div>
+        <div><label>Banner URL</label><input id="cfg_panel_banner" placeholder="https://..."></div>
+      </div>
+
+      <!-- Colores con picker -->
+      <div class="grid g3" style="margin-top:6px">
+        <div class="colorcell">
+          <label>Color BG</label>
+          <input id="cfg_color_bg" value="#0f0f10" />
+          <input id="cfg_color_bg_pick" type="color" />
+        </div>
+        <div class="colorcell">
+          <label>Acento</label>
+          <input id="cfg_color_accent" value="#6e57ff" />
+          <input id="cfg_color_accent_pick" type="color" />
+        </div>
+        <div class="colorcell">
+          <label>Texto</label>
+          <input id="cfg_color_text" value="#ffffff" />
+          <input id="cfg_color_text_pick" type="color" />
+        </div>
+      </div>
+
+      <label style="margin-top:6px">Título del panel</label>
+      <input id="cfg_panel_title" placeholder="Panel de Tickets">
+
+      <!-- Canales -->
+      <div class="grid g3" style="margin-top:8px">
+        <div>
+          <label>Panel Channel</label>
+          <select id="cfg_channel_panel_sel"></select>
+        </div>
+        <div>
+          <label>Log Channel (transcripts)</label>
+          <select id="cfg_channel_log_sel"></select>
+        </div>
+        <div>
+          <label>Ratings Channel (valoraciones)</label>
+          <select id="cfg_channel_ratings_sel"></select>
+        </div>
+      </div>
+
+      <!-- Roles -->
+      <div class="grid g3" style="margin-top:8px">
+        <div><label>Rol Staff</label><select id="cfg_role_staff"></select></div>
+        <div><label>Rol High Staff</label><select id="cfg_role_highstaff"></select></div>
+        <div><label>Rol Buycraft</label><select id="cfg_role_buycraft"></select></div>
+      </div>
+
+      <!-- Misc -->
+      <div class="grid g2-50" style="margin-top:8px">
+        <div><label>Server IP (!ip)</label><input id="cfg_misc_ip" placeholder="Server.net" /></div>
+        <div><label>Tienda URL (!tienda)</label><input id="cfg_misc_store" placeholder="https://tienda.com" /></div>
+      </div>
+
+      <div class="hr"></div>
+
+      <!-- Botones -->
+      <div class="row" style="justify-content:space-between">
+        <h3 style="margin:0">Botones del panel</h3>
+        <div class="row">
+          <select id="tpl_buttons" title="Plantillas de botones">
+            <option value="">Plantilla de botón…</option>
+            <option value="general">Soporte general</option>
+            <option value="compras">Soporte compras/Buycraft</option>
+            <option value="reclamos">Reclamos</option>
+            <option value="apelaciones">Apelaciones</option>
+          </select>
+          <button id="btnAddTplButton" class="btn">Agregar</button>
+        </div>
+      </div>
+
+      <div class="grid g2-50">
+        <div>
+          <div id="boxButtons" class="list" aria-label="Arrastra para reordenar"></div>
+          <div class="hint" style="margin-top:6px">Drag & drop para ordenar. Selecciona uno para editarlo y sus campos.</div>
+        </div>
+        <div>
+          <label>Título</label><input id="btn_title" placeholder="Soporte general">
+          <label>Subtítulo</label><input id="btn_sub" placeholder="Ayuda en general">
+          <label>Texto del botón</label><input id="btn_label" placeholder="💬 Abrir ticket">
+          <label>Emoji</label><input id="btn_emoji" placeholder="💬">
+          <label>Categoría destino (dónde se crean los tickets)</label>
+          <select id="btn_category_sel"></select>
+          <div class="row" style="margin-top:6px">
+            <label style="margin:0">Visible</label><input id="btn_visible" type="checkbox" checked style="width:auto;margin-left:8px">
+            <span class="hint">ID interno: <span class="mono" id="btn_id_read">—</span></span>
+            <button id="btnSaveButton" class="btn acc" style="margin-left:auto">Guardar botón</button>
+            <button id="btnDelButton" class="btn bad">Eliminar</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="hr"></div>
+
+      <!-- Campos -->
+      <div class="row" style="justify-content:space-between">
+        <h3 style="margin:0">Campos del formulario</h3>
+        <div class="row">
+          <select id="tpl_fields" title="Plantillas de campos">
+            <option value="">Plantilla de campos…</option>
+            <option value="campos_basicos">Usuario + Descripción</option>
+            <option value="compras">Compra: Pedido + Método + Pruebas</option>
+            <option value="reclamo_staff">Reclamo: Staff + Evidencia</option>
+            <option value="apelacion">Apelación: Motivo + Por qué deberían aceptarla</option>
+          </select>
+          <button id="btnAddTplFields" class="btn">Agregar</button>
+        </div>
+      </div>
+
+      <div class="grid g2-50">
+        <div>
+          <div id="boxFields" class="list" aria-label="Arrastra para reordenar"></div>
+          <div class="hint" style="margin-top:6px">Drag & drop para ordenar campos. Click para editar.</div>
+        </div>
+        <div>
+          <label>Tipo</label>
+          <select id="fld_type"><option value="short">short</option><option value="paragraph">paragraph</option></select>
+          <label>Etiqueta (lo que verá el usuario)</label><input id="fld_label" placeholder="¿Nombre de usuario?">
+          <label>Placeholder</label><input id="fld_ph" placeholder="Tu nick">
+          <div class="grid g3">
+            <div><label>Requerido</label><select id="fld_req"><option>true</option><option>false</option></select></div>
+            <div><label>MaxLen</label><input id="fld_max" value="100"></div>
+            <div style="display:flex;align-items:flex-end"><button id="btnSaveField" class="btn acc" style="width:100%">Guardar campo</button></div>
+          </div>
+          <button id="btnDelField" class="btn bad" style="margin-top:6px">Eliminar seleccionado</button>
+        </div>
+      </div>
+
+      <div class="hr"></div>
+      <div class="row">
+        <button id="btnLoadCfg" class="btn">Cargar config</button>
+        <button id="btnSaveCfg" class="btn acc">Guardar config</button>
+        <button id="btnPublish" class="btn good">Publicar panel</button>
+        <span id="cfgMsg" class="hint right">—</span>
+      </div>
+      <div class="footnote">“Publicar panel” guarda y ordena al bot repintar el panel en Discord.</div>
+    </div>
+
+    <!-- DERECHA: Previews -->
+    <div class="grid g2-50">
+      <div class="card">
+        <div class="section-title"><h2>Vista previa del panel</h2><span class="hint right">Discord</span></div>
+        <div id="livePreview"></div>
+      </div>
+
+      <div class="card">
+        <div class="section-title"><h2>Vista previa del formulario</h2><span class="hint right">Del botón activo</span></div>
+        <div id="formPreview"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- VISTA ADMIN -->
+  <section id="viewAdmin" class="hidden" style="margin-top:12px">
+    <div class="grid g2-50">
+      <div class="card">
+        <div class="section-title"><h2>Usuarios</h2><span class="hint right">Crear cuentas</span></div>
+        <label>Usuario</label><input id="adm_u_user" placeholder="cliente01">
+        <label>Contraseña</label><input id="adm_u_pass" type="password" placeholder="••••••">
+        <label>¿Es admin?</label>
+        <select id="adm_u_isadmin"><option value="false">No</option><option value="true">Sí</option></select>
+        <div class="row" style="margin-top:8px">
+          <button class="btn good" id="btnAdmCreateUser">Crear usuario</button>
+          <span class="hint right" id="adm_user_msg">—</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title"><h2>Bots</h2><span class="hint right">Crear y asignar dueño</span></div>
+        <label>Nombre del bot</label><input id="adm_b_name" placeholder="Mi bot">
+        <div class="row" style="margin-top:8px">
+          <button class="btn acc" id="btnAdmCreateBot">Crear bot</button>
+          <button class="btn" id="btnAdmListBots">Listar bots</button>
+        </div>
+
+        <div class="hr"></div>
+        <label>Bot</label>
+        <select id="adm_b_sel"></select>
+        <label>Owner userId (ID del usuario cliente)</label>
+        <input id="adm_b_owner" placeholder="uuid del usuario">
+        <div class="row" style="margin-top:8px">
+          <button class="btn" id="btnAdmAssignOwner">Asignar dueño</button>
+          <span class="hint right" id="adm_bot_msg">—</span>
+        </div>
+
+        <div class="hr"></div>
+        <div class="small">
+          <b>apiKey del último bot creado:</b>
+          <div id="adm_apiKey_box" class="mono pill" style="margin-top:6px">—</div>
+          <div class="footnote">Pon esta <b>apiKey</b> en el <span class="kbd">.env</span> del bot:</div>
+          <div class="mono" style="margin-top:6px">
+            BOT_API_KEY=&lt;apiKey&gt;<br/>
+            API_BASE_URL=http://TU_BACKEND:3001<br/>
+            DISCORD_TOKEN=&lt;token_de_discord&gt;<br/>
+            GUILD_ID=&lt;opcional para seed&gt;
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div id="toasts"></div>
+
+<script type="module">
+  import {
+    setBaseUrl, getBaseUrl, setToken, getToken, clearAll,
+    login, meBots, meGuilds,
+    getGuildRoles, getGuildChannels, getGuildConfig, saveGuildConfig, publishGuildPanel,
+    adminCreateUser, createBot, listBots, assignBotOwner
+  } from "./service.js";
+
+  // ==== helpers (únicos) ====
+  const $ = (id)=>document.getElementById(id);
+  const snooze=(ms)=>new Promise(r=>setTimeout(r,ms));
+  function toast(msg, type=""){ const b=$("toasts"); const d=document.createElement("div");
+    d.className="toast "+type; d.textContent=msg; b.appendChild(d); setTimeout(()=>d.style.opacity=".96",10);
+    setTimeout(()=>{d.style.opacity="0";d.style.transform="translateY(-6px)";},2600);
+    setTimeout(()=>b.removeChild(d),3000);
+  }
+  async function req(path, { method="GET", body, token=getToken(), headers={} } = {}){
+    const res = await fetch(getBaseUrl()+path, {
+      method,
+      headers: { "Content-Type":"application/json", ...(token ? {Authorization:`Bearer ${token}`} : {}), ...headers },
+      body: body ? JSON.stringify(body) : undefined
+    });
+    const text = await res.text();
+    let data; try{ data = text ? JSON.parse(text) : null }catch{ data = text }
+    if(!res.ok) throw new Error(typeof data==="string" ? data : (data?.error||res.statusText));
+    return data;
+  }
+
+  // ==== refs ====
+  const tabBot=$("tabBot"), tabAdmin=$("tabAdmin");
+  const viewBot=$("viewBot"), viewAdmin=$("viewAdmin");
+
+  const inBaseUrl=$("inBaseUrl"), btnSaveBase=$("btnSaveBase"), connState=$("connState");
+  const inAdminUser=$("inAdminUser"), inAdminPass=$("inAdminPass");
+  const inClientUser=$("inClientUser"), inClientPass=$("inClientPass");
+  const btnLoginAdmin=$("btnLoginAdmin"), btnLoginClient=$("btnLoginClient");
+  const btnLogout=$("btnLogout"), welcomeBadge=$("welcomeBadge"), secWelcome=$("secWelcome");
+  const welcomeTitle=$("welcomeTitle"), roleBadge=$("roleBadge");
+
+  const secBotsGuilds=$("secBotsGuilds"), selMyBots=$("selMyBots"), selMyGuilds=$("selMyGuilds");
+  const btnReloadRoles=$("btnReloadRoles"), btnReloadChannels=$("btnReloadChannels");
+
+  // editor
+  const cfg_brand_name=$("cfg_brand_name"), cfg_brand_icon=$("cfg_brand_icon"), cfg_panel_banner=$("cfg_panel_banner");
+  const cfg_panel_title=$("cfg_panel_title"), cfg_color_bg=$("cfg_color_bg"), cfg_color_accent=$("cfg_color_accent"), cfg_color_text=$("cfg_color_text");
+  const cfg_color_bg_pick=$("cfg_color_bg_pick"), cfg_color_accent_pick=$("cfg_color_accent_pick"), cfg_color_text_pick=$("cfg_color_text_pick");
+
+  const cfg_channel_panel_sel=$("cfg_channel_panel_sel"), cfg_channel_log_sel=$("cfg_channel_log_sel"), cfg_channel_ratings_sel=$("cfg_channel_ratings_sel");
+  const cfg_role_staff=$("cfg_role_staff"), cfg_role_highstaff=$("cfg_role_highstaff"), cfg_role_buycraft=$("cfg_role_buycraft");
+  const cfg_misc_ip=$("cfg_misc_ip"), cfg_misc_store=$("cfg_misc_store");
+
+  const boxButtons=$("boxButtons"), btn_title=$("btn_title"), btn_sub=$("btn_sub"), btn_label=$("btn_label"), btn_emoji=$("btn_emoji"),
+        btn_visible=$("btn_visible"), btn_category_sel=$("btn_category_sel"), btn_id_read=$("btn_id_read"),
+        btnSaveButton=$("btnSaveButton"), btnDelButton=$("btnDelButton"), tpl_buttons=$("tpl_buttons"), btnAddTplButton=$("btnAddTplButton");
+
+  const boxFields=$("boxFields"), fld_type=$("fld_type"), fld_label=$("fld_label"), fld_ph=$("fld_ph"),
+        fld_req=$("fld_req"), fld_max=$("fld_max"), btnSaveField=$("btnSaveField"), btnDelField=$("btnDelField"),
+        tpl_fields=$("tpl_fields"), btnAddTplFields=$("btnAddTplFields");
+
+  const btnLoadCfg=$("btnLoadCfg"), btnSaveCfg=$("btnSaveCfg"), btnPublish=$("btnPublish"), cfgMsg=$("cfgMsg");
+  const livePreview=$("livePreview"), formPreview=$("formPreview");
+
+  // admin
+  const adm_u_user=$("adm_u_user"), adm_u_pass=$("adm_u_pass"), adm_u_isadmin=$("adm_u_isadmin"),
+        btnAdmCreateUser=$("btnAdmCreateUser"), adm_user_msg=$("adm_user_msg");
+  const adm_b_name=$("adm_b_name"), btnAdmCreateBot=$("btnAdmCreateBot"), btnAdmListBots=$("btnAdmListBots"),
+        adm_b_sel=$("adm_b_sel"), adm_b_owner=$("adm_b_owner"), btnAdmAssignOwner=$("btnAdmAssignOwner"),
+        adm_bot_msg=$("adm_bot_msg"), adm_apiKey_box=$("adm_apiKey_box");
+
+  // ==== state ====
+  let isAdmin=false, meName="";
+  let currentBotId=null, currentGuildId=null, currentConfig=null;
+  let selectedButtonIndex=-1, selectedFieldIndex=-1;
+  let currentFormKey="ticket_general"; // id interno del botón activo
+  let cachedRoles=[], cachedChannels=[];
+
+  // ==== tabs ====
+  function showTab(which){
+    if(which==="admin"){ tabAdmin.classList.add("active"); tabBot.classList.remove("active"); viewAdmin.classList.remove("hidden"); viewBot.classList.add("hidden"); }
+    else { tabBot.classList.add("active"); tabAdmin.classList.remove("active"); viewBot.classList.remove("hidden"); viewAdmin.classList.add("hidden"); }
+  }
+  tabBot.onclick=()=>showTab("bot");
+  tabAdmin.onclick=()=>showTab("admin");
+
+  // ==== base url ====
+  inBaseUrl.value = getBaseUrl() || "http://localhost:3001";
+  btnSaveBase.onclick = async ()=>{
+    setBaseUrl(inBaseUrl.value.trim());
+    connState.textContent="guardado, probando…";
+    try{ await req("/health",{token:null}); connState.textContent="conectado"; }catch{ connState.textContent="no disponible"; }
+  };
+  (async()=>{try{await req("/health",{token:null});connState.textContent="conectado"}catch{connState.textContent="no disponible"}})();
+
+  // ==== auth ====
+  function decodeToken(){
+    const t=getToken(); if(!t) return null;
+    try{ return JSON.parse(atob(t.split(".")[1]||"")); }catch{return null}
+  }
+  function renderAuth(){
+    const payload=decodeToken();
+    if(!payload){
+      $("welcomeBadge").classList.add("hidden"); btnLogout.classList.add("hidden");
+      secWelcome.classList.add("hidden"); secBotsGuilds.classList.add("hidden"); viewBot.classList.add("hidden"); viewAdmin.classList.add("hidden");
+      return;
+    }
+    meName=payload.username||"usuario"; isAdmin=!!payload.isAdmin;
+    welcomeBadge.textContent=`Hola, ${meName}`; roleBadge.textContent=isAdmin?"ADMIN":"CLIENTE";
+    welcomeTitle.innerHTML=`<b>Bienvenido, ${meName}</b>`;
+    $("welcomeBadge").classList.remove("hidden"); btnLogout.classList.remove("hidden");
+    secWelcome.classList.remove("hidden"); secBotsGuilds.classList.remove("hidden");
+    if(isAdmin){ tabAdmin.classList.remove("hidden"); } else { tabAdmin.classList.add("hidden"); }
+    showTab("bot"); viewBot.classList.remove("hidden");
+    loadMyBots();
+  }
+  btnLogout.onclick=()=>{ clearAll(); renderAuth(); };
+
+  btnLoginAdmin.onclick=async()=>{ try{
+    const r=await login(inAdminUser.value.trim(), inAdminPass.value);
+    if(r?.token) setToken(r.token); renderAuth();
+  }catch(e){ toast("Login admin: "+(e.message||e),"err"); } };
+  btnLoginClient.onclick=async()=>{ try{
+    const r=await req("/api/auth/login_user",{method:"POST",token:null,body:{ username: inClientUser.value.trim(), password: inClientPass.value }});
+    if(r?.token) setToken(r.token); renderAuth();
+  }catch(e){ toast("Login cliente: "+(e.message||e),"err"); } };
+
+  // ==== bots/guilds ====
+  async function loadMyBots(){
+    selMyBots.innerHTML=""; selMyGuilds.innerHTML="";
+    try{
+      const r = await meBots();
+      (r.bots||[]).forEach(b=>{
+        const o=document.createElement("option"); o.value=b.id; o.textContent=`${b.name} (${b.id.slice(0,6)})`; selMyBots.appendChild(o);
+      });
+      currentBotId = selMyBots.value || null;
+      await loadMyGuilds();
+    }catch(e){ toast("No pude cargar bots: "+(e.message||e),"err"); }
+  }
+  async function loadMyGuilds(){
+    selMyGuilds.innerHTML=""; if(!currentBotId) return;
+    const r = await meGuilds();
+    (r.guilds||[]).filter(g=>g.botId===currentBotId).forEach(g=>{
+      const o=document.createElement("option"); o.value=g.guildId; o.textContent=`${g.name} (${g.guildId})`; selMyGuilds.appendChild(o);
+    });
+    currentGuildId = selMyGuilds.value || null;
+    if(currentGuildId){ await Promise.all([loadConfig(), loadRoles(), loadChannels()]); }
+  }
+  selMyBots.onchange = ()=>{ currentBotId=selMyBots.value; loadMyGuilds(); };
+  selMyGuilds.onchange = ()=>{ currentGuildId=selMyGuilds.value; loadConfig(); };
+
+  async function loadRoles(){
+    try{ const r=await getGuildRoles(currentGuildId); cachedRoles=r.roles||[]; fillRolesSelectors(); }
+    catch(e){ console.warn("roles:",e.message||e); }
+  }
+  async function loadChannels(){
+    try{
+      const r=await getGuildChannels(currentGuildId);
+      cachedChannels=r.channels||[]; fillChannelSelectors(); fillCategorySelector();
+    }catch(e){ console.warn("channels:",e.message||e); }
+  }
+  function fillRolesSelectors(){
+    const fill=(sel, selectedId)=>{
+      sel.innerHTML=""; const optEmpty=document.createElement("option"); optEmpty.value=""; optEmpty.textContent="—"; sel.appendChild(optEmpty);
+      cachedRoles.sort((a,b)=>b.position-a.position).forEach(r=>{
+        const o=document.createElement("option"); o.value=r.id; o.textContent=`${r.name} (${r.id})`; if(r.id===selectedId) o.selected=true; sel.appendChild(o);
+      });
+    };
+    if(!currentConfig) return;
+    fill(cfg_role_staff, currentConfig.permissions?.staffRoleId||"");
+    fill(cfg_role_highstaff, currentConfig.permissions?.highStaffRoleId||"");
+    fill(cfg_role_buycraft, currentConfig.permissions?.buycraftRoleId||"");
+  }
+  function fillChannelSelectors(){
+    const textChannels=cachedChannels.filter(c=>c.type===0||c.type===5);
+    const fill=(sel,selectedId)=>{
+      sel.innerHTML=""; const optEmpty=document.createElement("option"); optEmpty.value=""; optEmpty.textContent="—"; sel.appendChild(optEmpty);
+      textChannels.forEach(c=>{ const o=document.createElement("option"); o.value=c.id; o.textContent=`#${c.name} (${c.id})`; if(c.id===selectedId) o.selected=true; sel.appendChild(o); });
+    };
+    if(!currentConfig) return;
+    fill(cfg_channel_panel_sel, currentConfig.channels?.panelChannelId||"");
+    fill(cfg_channel_log_sel, currentConfig.channels?.logChannelId||"");
+    fill(cfg_channel_ratings_sel, currentConfig.channels?.ratingsChannelId||"");
+  }
+  function fillCategorySelector(){
+    const cats=cachedChannels.filter(c=>c.type===4);
+    btn_category_sel.innerHTML=""; const optEmpty=document.createElement("option"); optEmpty.value=""; optEmpty.textContent="— (sin categoría)"; btn_category_sel.appendChild(optEmpty);
+    cats.forEach(c=>{ const o=document.createElement("option"); o.value=c.id; o.textContent=`${c.name} (${c.id})`; btn_category_sel.appendChild(o); });
+    const catId=currentConfig?.categories?.[currentFormKey]||""; if(catId) btn_category_sel.value=catId;
+  }
+  btnReloadRoles.onclick=loadRoles;
+  btnReloadChannels.onclick=async()=>{ await loadChannels(); renderPreview(currentConfig); }
+
+  // ==== PREVIEW PANEL ====
+  function renderPreview(cfg){
+    if(!livePreview||!cfg) return;
+    const accent=cfg.panel?.theme?.accent||"#6e57ff";
+    const text=cfg.panel?.theme?.text||"#ffffff";
+    const bg=cfg.panel?.theme?.bg||"#0f0f10";
+    const visibles=(cfg.buttons||[]).filter(b=>b.visible!==false).sort((a,b)=>(a.order||0)-(b.order||0));
+    livePreview.innerHTML=`
+      <div class="pv-wrap" style="--pv-bg:${bg};--pv-text:${text};--pv-accent:${accent}">
+        <div class="pv-banner">
+          ${cfg.panel?.bannerUrl ? `<img src="${cfg.panel.bannerUrl}" alt="">` : ""}
+          <div class="pv-title">${cfg.panel?.title || cfg.brand?.name || "Panel de Tickets"}</div>
+        </div>
+        <div class="pv-sections">
+          ${visibles.map(b=>`
+            <div class="pv-row">
+              <div class="pv-info">
+                <div class="pv-emoji">${b.emoji||"🎟️"}</div>
+                <div>
+                  <div class="pv-h">${b.title||""}</div>
+                  <div class="pv-sub">${b.subtitle||""}</div>
+                </div>
+              </div>
+              <button class="pv-btn">${(b.emoji||"")} ${b.label||b.title||"Abrir"}</button>
+            </div>
+          `).join("")}
+        </div>
+      </div>`;
+    renderFormPreview(); // mantener sincronizado
+  }
+
+  // ==== PREVIEW FORM ====
+  function renderFormPreview(){
+    if(!currentConfig) return;
+    const arr = getFormArrayFor(currentFormKey);
+    formPreview.innerHTML = arr.map(f=>{
+      const req = f.required!==false ? " *" : "";
+      const ctl = f.type==="paragraph"
+        ? `<div class="ftextarea" contenteditable="false" aria-disabled="true"></div>`
+        : `<div class="finput" contenteditable="false" aria-disabled="true"></div>`;
+      return `<div class="field"><div class="flabel">${f.label||f.id||"Campo"}${req}</div>${ctl}</div>`;
+    }).join("") || `<div class="hint">No hay campos aún.</div>`;
+  }
+
+  // ==== editor load/save ====
+  function getFormArrayFor(key){
+    const f=(currentConfig.forms||{})[key];
+    return Array.isArray(f) ? f : (f?.fields||[]);
+  }
+  function ensureFormObject(key){
+    if(!currentConfig.forms) currentConfig.forms={};
+    if(!currentConfig.forms[key]) currentConfig.forms[key]={ title:"Formulario", fields:[] };
+    if(Array.isArray(currentConfig.forms[key])) currentConfig.forms[key]={ title:"Formulario", fields: currentConfig.forms[key] };
+  }
+  function renderButtons(){
+    boxButtons.innerHTML="";
+    (currentConfig.buttons||[]).forEach((b,idx)=>{
+      const d=document.createElement("div"); d.className="item"; d.draggable=true; d.dataset.idx=idx;
+      d.innerHTML=`<span class="mono">${b.title||b.id}</span><span class="hint">${b.visible===false?"oculto":" "}</span>`;
+      // click select
+      d.onclick=()=>selectButton(idx);
+      // drag
+      d.addEventListener("dragstart",()=>{ d.classList.add("dragging"); });
+      d.addEventListener("dragend",()=>{ d.classList.remove("dragging"); updateButtonsFromDOM(); });
+      boxButtons.appendChild(d);
+    });
+    // d&d host
+    boxButtons.addEventListener("dragover",(e)=>{
+      e.preventDefault();
+      const dragging = boxButtons.querySelector(".dragging");
+      if(!dragging) return;
+      const siblings=[...boxButtons.querySelectorAll(".item:not(.dragging)")];
+      const next = siblings.find(s=>{
+        const rect=s.getBoundingClientRect();
+        return e.clientY <= rect.top + rect.height/2;
+      });
+      boxButtons.insertBefore(dragging, next||null);
+    });
+  }
+  function updateButtonsFromDOM(){
+    const ids = [...boxButtons.querySelectorAll(".item")].map(n=>Number(n.dataset.idx));
+    const arr = (currentConfig.buttons||[]).slice();
+    const reordered = ids.map(i=>arr[i]).filter(Boolean);
+    currentConfig.buttons = reordered.map((b,i)=>({ ...b, order:i+1 }));
+    renderPreview(currentConfig);
+  }
+  function selectButton(idx){
+    selectedButtonIndex=idx;
+    const b=currentConfig.buttons[idx];
+    currentFormKey=b.id; // id interno del botón
+    btn_id_read.textContent=b.id;
+    btn_title.value=b.title||""; btn_sub.value=b.subtitle||""; btn_label.value=b.label||""; btn_emoji.value=b.emoji||""; btn_visible.checked=b.visible!==false;
+    const catId=currentConfig?.categories?.[currentFormKey]||""; btn_category_sel.value=catId||"";
+    renderFields(); renderPreview(currentConfig);
+  }
+
+  function renderFields(){
+    boxFields.innerHTML="";
+    ensureFormObject(currentFormKey);
+    const formArr=getFormArrayFor(currentFormKey);
+    formArr.forEach((f,idx)=>{
+      const d=document.createElement("div"); d.className="item"; d.draggable=true; d.dataset.fidx=idx;
+      d.innerHTML=`<span class="mono">${f.label||f.id||f.type}</span><span class="hint">${f.type}</span>`;
+      d.onclick=()=>{ selectedFieldIndex=idx; fillFieldEditor(formArr[idx]); };
+      d.addEventListener("dragstart",()=>d.classList.add("dragging"));
+      d.addEventListener("dragend",()=>{ d.classList.remove("dragging"); updateFieldsFromDOM(); });
+      boxFields.appendChild(d);
+    });
+    boxFields.addEventListener("dragover",(e)=>{
+      e.preventDefault();
+      const dragging=boxFields.querySelector(".dragging"); if(!dragging) return;
+      const siblings=[...boxFields.querySelectorAll(".item:not(.dragging)")];
+      const next=siblings.find(s=>{const r=s.getBoundingClientRect(); return e.clientY <= r.top + r.height/2;});
+      boxFields.insertBefore(dragging, next||null);
+    });
+    renderFormPreview();
+  }
+  function updateFieldsFromDOM(){
+    ensureFormObject(currentFormKey);
+    const arr=currentConfig.forms[currentFormKey].fields.slice();
+    const order=[...boxFields.querySelectorAll(".item")].map(n=>Number(n.dataset.fidx));
+    currentConfig.forms[currentFormKey].fields = order.map(i=>arr[i]).filter(Boolean);
+    renderFormPreview();
+  }
+  function fillFieldEditor(f){
+    fld_type.value=f.type||"short"; fld_label.value=f.label||""; fld_ph.value=f.placeholder||"";
+    fld_req.value=String(f.required!==false); fld_max.value=f.maxLen||(f.type==="paragraph"?1000:100);
+  }
+
+  async function loadConfig(){
+    try{
+      const r=await getGuildConfig(currentGuildId);
+      currentConfig=r;
+
+      cfg_brand_name.value=r.brand?.name||""; cfg_brand_icon.value=r.brand?.icon||"";
+      cfg_panel_banner.value=r.panel?.bannerUrl||""; cfg_panel_title.value=r.panel?.title||"";
+      cfg_color_bg.value=r.panel?.theme?.bg||"#0f0f10"; cfg_color_accent.value=r.panel?.theme?.accent||"#6e57ff"; cfg_color_text.value=r.panel?.theme?.text||"#ffffff";
+      cfg_color_bg_pick.value=toColor(cfg_color_bg.value); cfg_color_accent_pick.value=toColor(cfg_color_accent.value); cfg_color_text_pick.value=toColor(cfg_color_text.value);
+
+      fillChannelSelectors(); fillRolesSelectors(); fillCategorySelector();
+      cfg_misc_ip.value=r.misc?.serverIp||""; cfg_misc_store.value=r.misc?.tiendaUrl||"";
+
+      if(!currentConfig.buttons) currentConfig.buttons=[];
+      if(!currentConfig.forms) currentConfig.forms={ ticket_general:{ title:"Formulario", fields:[] } };
+      if(!currentConfig.categories) currentConfig.categories={};
+
+      renderButtons();
+      currentFormKey=currentConfig.buttons?.[0]?.id || "ticket_general";
+      renderFields();
+      renderPreview(currentConfig);
+      cfgMsg.textContent="config cargada"; await snooze(900); cfgMsg.textContent="—";
+    }catch(e){ toast("No pude cargar config: "+(e.message||e),"err"); }
+  }
+  function collectConfig(){
+    currentConfig.brand={ name:cfg_brand_name.value.trim(), icon:cfg_brand_icon.value.trim() };
+    currentConfig.panel={
+      bannerUrl: cfg_panel_banner.value.trim(),
+      title: cfg_panel_title.value.trim(),
+      theme: { bg: cfg_color_bg.value.trim(), accent: cfg_color_accent.value.trim(), text: cfg_color_text.value.trim() }
+    };
+    currentConfig.channels={
+      panelChannelId: (cfg_channel_panel_sel.value||"").trim()||null,
+      logChannelId: (cfg_channel_log_sel.value||"").trim()||null,
+      ratingsChannelId: (cfg_channel_ratings_sel.value||"").trim()||null
+    };
+    currentConfig.permissions=currentConfig.permissions||{};
+    currentConfig.permissions.staffRoleId=cfg_role_staff.value||null;
+    currentConfig.permissions.highStaffRoleId=cfg_role_highstaff.value||null;
+    currentConfig.permissions.buycraftRoleId=cfg_role_buycraft.value||null;
+    currentConfig.misc={ tiendaUrl:(cfg_misc_store.value||"").trim(), serverIp:(cfg_misc_ip.value||"").trim() };
+    return currentConfig;
+  }
+
+  // color pickers link
+  function toColor(hex){ try{ const x=hex.trim(); return /^#/.test(x)?x:"#"+x.replace(/[^0-9a-f]/ig,"").slice(0,6).padEnd(6,"0"); }catch{return "#000000"} }
+  cfg_color_bg_pick.oninput=()=>{ cfg_color_bg.value=cfg_color_bg_pick.value; collectConfig(); renderPreview(currentConfig); };
+  cfg_color_accent_pick.oninput=()=>{ cfg_color_accent.value=cfg_color_accent_pick.value; collectConfig(); renderPreview(currentConfig); };
+  cfg_color_text_pick.oninput=()=>{ cfg_color_text.value=cfg_color_text_pick.value; collectConfig(); renderPreview(currentConfig); };
+  [cfg_brand_name,cfg_brand_icon,cfg_panel_banner,cfg_panel_title,cfg_color_bg,cfg_color_accent,cfg_color_text].forEach(el=>{
+    el.addEventListener("input", ()=>{ collectConfig(); renderPreview(currentConfig); });
+  });
+
+  // guardar / publicar
+  btnLoadCfg.onclick=loadConfig;
+  btnSaveCfg.onclick=async()=>{ try{
+    if(!currentGuildId) return;
+    collectConfig(); await saveGuildConfig(currentGuildId,currentConfig);
+    cfgMsg.textContent="guardado ✔"; await snooze(1000); cfgMsg.textContent="—"; toast("Config guardada","ok");
+  }catch(e){ cfgMsg.textContent=e.message||"Error"; await snooze(1600); cfgMsg.textContent="—"; toast(String(e.message||e),"err"); } };
+  btnPublish.onclick=async()=>{ try{
+    if(!currentGuildId) return;
+    collectConfig(); await saveGuildConfig(currentGuildId,currentConfig); await publishGuildPanel(currentGuildId);
+    cfgMsg.textContent="Publicación solicitada ✔"; await snooze(1200); cfgMsg.textContent="—"; toast("Señal enviada al bot","ok");
+  }catch(e){ cfgMsg.textContent=e.message||"Error al publicar"; await snooze(1600); cfgMsg.textContent="—"; toast(String(e.message||e),"err"); } };
+
+  // botones CRUD
+  function ensureButtons(){
+    if(!currentConfig.buttons) currentConfig.buttons=[];
+  }
+  btnSaveButton.onclick=()=>{
+    ensureButtons();
+    // si no hay seleccionado, creamos nuevo id a partir del título
+    if(selectedButtonIndex<0){
+      const newId = ("btn_"+(btn_title.value||"boton")).toLowerCase().replace(/\s+/g,"_").replace(/[^a-z0-9_]/g,"").slice(0,28) || ("btn_"+Date.now());
+      const b={ id:newId, order:(currentConfig.buttons.length+1), title:btn_title.value.trim(), subtitle:btn_sub.value.trim(), label:btn_label.value.trim(), emoji:btn_emoji.value.trim(), visible:btn_visible.checked };
+      currentConfig.buttons.push(b);
+      currentConfig.categories=currentConfig.categories||{}; currentConfig.categories[b.id]=btn_category_sel.value||null;
+      currentFormKey=b.id; selectedButtonIndex=currentConfig.buttons.length-1; btn_id_read.textContent=b.id;
+    }else{
+      const b=currentConfig.buttons[selectedButtonIndex];
+      b.title=btn_title.value.trim(); b.subtitle=btn_sub.value.trim(); b.label=btn_label.value.trim(); b.emoji=btn_emoji.value.trim(); b.visible=btn_visible.checked;
+      currentConfig.categories[currentFormKey]=btn_category_sel.value||null;
+    }
+    // asegurar form del botón
+    ensureFormObject(currentFormKey);
+    renderButtons(); renderPreview(currentConfig);
+    toast("Botón guardado","ok");
+  };
+  btnDelButton.onclick=()=>{
+    if(selectedButtonIndex<0) return;
+    const removed=currentConfig.buttons.splice(selectedButtonIndex,1)[0];
+    if(removed?.id && currentConfig.forms) delete currentConfig.forms[removed.id];
+    if(removed?.id && currentConfig.categories) delete currentConfig.categories[removed.id];
+    selectedButtonIndex=-1; currentFormKey=currentConfig.buttons?.[0]?.id || "ticket_general";
+    btn_id_read.textContent="—"; btn_title.value=""; btn_sub.value=""; btn_label.value=""; btn_emoji.value="";
+    renderButtons(); renderFields(); renderPreview(currentConfig);
+  };
+  btn_category_sel.onchange=()=>{
+    currentConfig.categories=currentConfig.categories||{};
+    currentConfig.categories[currentFormKey]=btn_category_sel.value||null;
+  };
+
+  // plantillas botones
+  btnAddTplButton.onclick=()=>{
+    const v=tpl_buttons.value; if(!v) return;
+    const presets={
+      general:{ title:"Soporte general", subtitle:"Ayuda en general", label:"💬 Abrir ticket", emoji:"💬" },
+      compras:{ title:"Compras / Tienda", subtitle:"Pagos, pedidos y compras", label:"🛒 Soporte tienda", emoji:"🛒" },
+      reclamos:{ title:"Reclamos", subtitle:"Reporta un problema", label:"⚠️ Abrir reclamo", emoji:"⚠️" },
+      apelaciones:{ title:"Apelaciones", subtitle:"Solicita revisión de sanción", label:"📝 Apelar sanción", emoji:"📝" }
+    }[v];
+    if(!presets) return;
+    btn_title.value=presets.title; btn_sub.value=presets.subtitle; btn_label.value=presets.label; btn_emoji.value=presets.emoji;
+    selectedButtonIndex=-1; btn_id_read.textContent="(nuevo)";
+  };
+
+  // fields CRUD
+  btnSaveField.onclick=()=>{
+    ensureFormObject(currentFormKey);
+    const field = {
+      type: fld_type.value,
+      label: fld_label.value.trim() || (fld_type.value==="paragraph"?"Descripción":"Texto"),
+      placeholder: fld_ph.value.trim(),
+      required: fld_req.value==="true",
+      maxLen: Number(fld_max.value)|| (fld_type.value==="paragraph"?1000:100)
+    };
+    if(selectedFieldIndex<0){
+      currentConfig.forms[currentFormKey].fields.push(field);
+      selectedFieldIndex=currentConfig.forms[currentFormKey].fields.length-1;
+    }else{
+      currentConfig.forms[currentFormKey].fields[selectedFieldIndex]=field;
+    }
+    renderFields(); renderFormPreview(); toast("Campo guardado","ok");
+  };
+  btnDelField.onclick=()=>{
+    if(selectedFieldIndex<0) return;
+    const arr=currentConfig.forms[currentFormKey].fields; arr.splice(selectedFieldIndex,1);
+    selectedFieldIndex=-1; renderFields(); renderFormPreview();
+  };
+
+  // plantillas de campos
+  btnAddTplFields.onclick=()=>{
+    const v=tpl_fields.value; if(!v) return;
+    ensureFormObject(currentFormKey);
+    const add=(arr)=>{ currentConfig.forms[currentFormKey].fields.push(...arr); renderFields(); renderFormPreview(); };
+    const short=(label,ph,req=true,max=100)=>({type:"short",label,placeholder:ph,required:req,maxLen:max});
+    const para=(label,ph,req=true,max=1000)=>({type:"paragraph",label,placeholder:ph,required:req,maxLen:max});
+    const packs={
+      campos_basicos: [
+        short("¿Nombre de usuario?","Tu nick"),
+        para("Describe tu problema","Cuéntanos brevemente...")
+      ],
+      compras: [
+        short("ID/Pedido de compra","ABC123"),
+        short("Método de pago","Tarjeta/PayPal/etc."),
+        para("Pruebas (links o descripción)","Adjunta capturas o explica")
+      ],
+      reclamo_staff: [
+        short("Staff implicado","Nombre del staff"),
+        para("Evidencia","Explica y/o adjunta links")
+      ],
+      apelacion: [
+        short("¿Quién te sancionó?","Nombre/mod"),
+        para("¿Por qué deberían aceptarla?","Explica con detalle")
+      ]
+    };
+    add(packs[v]||[]);
+  };
+
+  // ==== listeners ====
+  [cfg_brand_name,cfg_brand_icon,cfg_panel_banner,cfg_panel_title,cfg_color_bg,cfg_color_accent,cfg_color_text].forEach(el=>{
+    el.addEventListener("input",()=>{ collectConfig(); renderPreview(currentConfig); });
+  });
+
+  // ==== ADMIN ====
+  btnAdmCreateUser.onclick=async()=>{ try{
+    const r=await adminCreateUser({ username:adm_u_user.value.trim(), password:adm_u_pass.value, isAdmin:adm_u_isadmin.value==="true" });
+    adm_user_msg.textContent="Creado ✔"; toast("Usuario creado","ok"); await snooze(1000); adm_user_msg.textContent="—";
+  }catch(e){ adm_user_msg.textContent=e.message||"Error"; toast(String(e.message||e),"err"); } };
+
+  btnAdmCreateBot.onclick=async()=>{ try{
+    const r=await createBot(adm_b_name.value.trim());
+    toast("Bot creado","ok"); adm_apiKey_box.textContent=r?.bot?.apiKey||"—";
+    await refreshBotsList();
+  }catch(e){ toast(String(e.message||e),"err"); } };
+
+  async function refreshBotsList(){
+    const r=await listBots(); adm_b_sel.innerHTML="";
+    (r.bots||[]).forEach(b=>{ const o=document.createElement("option"); o.value=b.id; o.textContent=`${b.name} (${b.id.slice(0,6)})`; adm_b_sel.appendChild(o); });
+  }
+  btnAdmListBots.onclick=refreshBotsList;
+
+  btnAdmAssignOwner.onclick=async()=>{ try{
+    if(!adm_b_sel.value) return;
+    const r=await assignBotOwner(adm_b_sel.value, adm_b_owner.value.trim());
+    adm_bot_msg.textContent="Asignado ✔"; toast("Dueño asignado","ok"); await snooze(1000); adm_bot_msg.textContent="—";
+  }catch(e){ adm_bot_msg.textContent=e.message||"Error"; toast(String(e.message||e),"err"); } };
+
+  // ==== init ====
+  function initColorsMirror(){
+    // si el usuario edita el hex a mano, sincroniza el picker
+    [ [cfg_color_bg, cfg_color_bg_pick],
+      [cfg_color_accent, cfg_color_accent_pick],
+      [cfg_color_text, cfg_color_text_pick]
+    ].forEach(([hex,pick])=>{
+      hex.addEventListener("input", ()=>{ pick.value=toColor(hex.value); collectConfig(); renderPreview(currentConfig); });
+    });
+  }
+  initColorsMirror();
+
+  // base url check already done above
+  function init(){
+    renderAuth();
+  }
+  init();
+</script>
+</body>
+</html>

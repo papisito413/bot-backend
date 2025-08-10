@@ -1,0 +1,184 @@
+{
+  "1400641565332082688": {
+    "brand": {
+      "name": "Peruland",
+      "icon": "https://i.imgur.com/R6T2b9S.png"
+    },
+    "panel": {
+      "bannerUrl": "https://i.imgur.com/R6T2b9S.png",
+      "title": "TEST",
+      "theme": {
+        "bg": "#0c0c13",
+        "accent": "#10078d",
+        "text": "#ffffff"
+      }
+    },
+    "channels": {
+      "panelChannelId": "1400645874862002382",
+      "logChannelId": "1400645966994083871",
+      "ratingsChannelId": "1403845387424628817"
+    },
+    "buttons": [
+      {
+        "id": "ticket_general",
+        "order": 1,
+        "title": "Soporte",
+        "subtitle": "",
+        "label": "Soporte",
+        "emoji": "💬",
+        "visible": true
+      },
+      {
+        "id": "nuevo_boton",
+        "order": 2,
+        "title": "Nuevo botón",
+        "subtitle": "",
+        "label": "Abrir",
+        "emoji": "🎟️",
+        "visible": true
+      },
+      {
+        "id": "ticket_bug",
+        "order": 3,
+        "title": "Reportar Bug",
+        "subtitle": "Errores del servidor.",
+        "label": "Bugs",
+        "emoji": "🔧",
+        "visible": true
+      },
+      {
+        "id": "ticket_store",
+        "order": 4,
+        "title": "Compras / Store",
+        "subtitle": "Problemas Buycraft.",
+        "label": "Tienda",
+        "emoji": "🛒",
+        "visible": true
+      }
+    ],
+    "forms": {
+      "TEST": {
+        "title": "Formulario",
+        "fields": []
+      },
+      "ticket_general": {
+        "title": "Formulario",
+        "fields": [
+          {
+            "type": "short",
+            "id": "usuario",
+            "label": "¿Nombre de usuario?",
+            "placeholder": "Tu nick",
+            "required": true,
+            "maxLen": 100
+          },
+          {
+            "type": "short",
+            "id": "prueba_compra",
+            "label": "Prueba de compra",
+            "placeholder": "ID o captura (adjunta en el ticket)",
+            "required": false,
+            "maxLen": 150
+          },
+          {
+            "type": "paragraph",
+            "id": "detalle",
+            "label": "Describe tu problema",
+            "placeholder": "Cuéntanos con detalle…",
+            "required": true,
+            "maxLen": 1000
+          },
+          {
+            "type": "short",
+            "id": "prueba",
+            "label": "Pruebas/Links",
+            "placeholder": "URL, imgur, etc.",
+            "required": false,
+            "maxLen": 200
+          },
+          {
+            "type": "select",
+            "id": "prioridad",
+            "label": "Prioridad",
+            "placeholder": "Alta, Media, Baja",
+            "required": true,
+            "maxLen": 50
+          }
+        ]
+      },
+      "Buycraft": {
+        "title": "Formulario",
+        "fields": []
+      },
+      "1403872590442926090": {
+        "title": "Formulario",
+        "fields": []
+      },
+      "nuevo_boton": {
+        "title": "Formulario",
+        "fields": [
+          {
+            "type": "short",
+            "id": "usuario",
+            "label": "¿Nombre de usuario?",
+            "placeholder": "Tu nick",
+            "required": true,
+            "maxLen": 100
+          }
+        ]
+      },
+      "ticket_bug": {
+        "title": "Formulario",
+        "fields": [
+          {
+            "type": "short",
+            "id": "usuario",
+            "label": "¿Nombre de usuario?",
+            "placeholder": "Tu nick",
+            "required": true,
+            "maxLen": 100
+          },
+          {
+            "type": "paragraph",
+            "id": "detalle",
+            "label": "Describe tu problema",
+            "placeholder": "Cuéntanos con detalle…",
+            "required": true,
+            "maxLen": 1000
+          }
+        ]
+      },
+      "ticket_store": {
+        "title": "Formulario",
+        "fields": [
+          {
+            "type": "short",
+            "label": "Nombre de usuario",
+            "placeholder": "Tu nick",
+            "required": true,
+            "maxLen": 100
+          }
+        ]
+      }
+    },
+    "permissions": {
+      "staffRoleId": "1403845323364761610",
+      "highStaffRoleId": "1400644689425862830",
+      "buycraftRoleId": "1403845345393512448",
+      "commands": {
+        "reiniciarreclamos": "highStaff",
+        "reclamos": "staff"
+      }
+    },
+    "misc": {
+      "tiendaUrl": "peru.com",
+      "serverIp": "peru.net"
+    },
+    "categories": {
+      "ticket_general": "1403872590442926090",
+      "nuevo_boton": null,
+      "ticket_bug": null,
+      "ticket_store": null
+    }
+  }
+}

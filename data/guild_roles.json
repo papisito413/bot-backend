@@ -1,0 +1,40 @@
+{
+  "1400641565332082688": [
+    {
+      "id": "1400641565332082688",
+      "name": "@everyone",
+      "position": 0,
+      "managed": false
+    },
+    {
+      "id": "1400644689425862830",
+      "name": "highstaff",
+      "position": 5,
+      "managed": false
+    },
+    {
+      "id": "1403814986459119629",
+      "name": "peruland",
+      "position": 4,
+      "managed": true
+    },
+    {
+      "id": "1403845323364761610",
+      "name": "staff",
+      "position": 3,
+      "managed": false
+    },
+    {
+      "id": "1403845345393512448",
+      "name": "buycraft",
+      "position": 2,
+      "managed": false
+    },
+    {
+      "id": "1403857817311379526",
+      "name": "nuevo rol",
+      "position": 1,
+      "managed": false
+    }
+  ]
+}
