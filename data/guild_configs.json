@@ -156,7 +156,8 @@
             "label": "Nombre de usuario",
             "placeholder": "Tu nick",
             "required": true,
-            "maxLen": 100
+            "maxLen": 100,
+            "id": "nombre_de_usuario"
           }
         ]
       }

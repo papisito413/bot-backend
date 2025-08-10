@@ -61,6 +61,7 @@
   .tabs{display:flex;gap:8px;margin-bottom:10px}
   .tab{flex:0 0 auto;padding:8px 12px;border-radius:10px;border:1px solid #252a3f;background:#12162b;color:#cfd6ff;cursor:pointer;font-weight:700}
   .tab.active{background:linear-gradient(180deg,#6e57ff,#4e3fe1);border-color:#6e57ff;color:#fff}
+  .tabs.locked .tab{opacity:.5;pointer-events:none;filter:grayscale(1);cursor:not-allowed}
 
   /* Lists */
   .list{height:148px;overflow:auto;border:1px dashed #28304d;border-radius:10px;padding:8px;background:#0d1020}
@@ -82,12 +83,9 @@
   .colorcell{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center}
   .colorcell input[type=color]{width:40px;height:30px;border:none;background:transparent;padding:0}
 
-  /* PREVIEW: panel */
+  /* PREVIEW (sin imagen) — con CSS vars */
   #livePreview { padding: 0; }
   .pv-wrap{background:var(--pv-bg,#0f0f10);color:var(--pv-text,#fff);border:1px solid #24283a;border-radius:12px;overflow:hidden}
-  .pv-banner{position:relative;height:160px;background:#171a24}
-  .pv-banner img{width:100%;height:100%;object-fit:cover;opacity:.9;display:block}
-  .pv-title{position:absolute;left:16px;bottom:10px;font-weight:900;font-size:18px;text-shadow:0 2px 16px rgba(0,0,0,.6)}
   .pv-sections{padding:10px}
   .pv-row{display:flex;align-items:center;justify-content:space-between;padding:9px;border-radius:10px;border:1px solid #262b44;background:rgba(18,18,28,.5)}
   .pv-row+.pv-row{margin-top:6px}
@@ -98,7 +96,7 @@
   .pv-btn{background:var(--pv-accent,#6e57ff);border:0;color:#fff;border-radius:9px;padding:7px 10px;font-weight:800;cursor:pointer}
   .pv-btn:hover{opacity:.95}
 
-  /* PREVIEW: form */
+  /* PREVIEW FORM */
   #formPreview .field{border:1px solid #262b44;background:#121528;border-radius:10px;padding:8px}
   #formPreview .field+.field{margin-top:6px}
   #formPreview .flabel{font-size:11px;color:#bfc7e9;margin-bottom:4px}
@@ -110,6 +108,14 @@
   .toast{background:#0f1220;border:1px solid #283055;color:#e7e9ef;border-radius:10px;padding:8px 10px;opacity:0;transform:translateY(6px);transition:.25s}
   .toast.ok{border-color:#2f915d}
   .toast.err{border-color:#a44}
+
+  /* LOGIN OVERLAY */
+  .overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:18px;background:radial-gradient(1200px 600px at 50% 20%, rgba(110,87,255,.12), transparent),linear-gradient(180deg,#0b0c10 0%,#0d0f17 100%);z-index:100}
+  .login-card{width:min(440px,92vw);background:rgba(18,20,27,.94);border:1px solid #24283a;border-radius:18px;padding:18px;box-shadow:0 10px 40px rgba(0,0,0,.35)}
+  .login-title{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+  .login-title h1{font-size:20px;margin:0}
+  .seg{display:flex;gap:8px;margin-top:10px}
+  .seg .btn{flex:1}
 </style>
 </head>
 <body>
@@ -126,49 +132,10 @@
   </header>
 
   <!-- TABS -->
-  <div class="tabs">
+  <div id="tabsBox" class="tabs locked">
     <button id="tabBot" class="tab active">Bot</button>
     <button id="tabAdmin" class="tab">Admin</button>
   </div>
-
-  <!-- CONEXIÓN + LOGIN -->
-  <section class="grid g2-50">
-    <div class="card">
-      <div class="section-title"><h2>Conexión</h2><span class="hint">URL de tu backend</span></div>
-      <label>API Base URL</label>
-      <input id="inBaseUrl" placeholder="http://localhost:3001" />
-      <div class="row" style="margin-top:8px">
-        <button id="btnSaveBase" class="btn">Guardar</button>
-        <span id="connState" class="hint right">—</span>
-      </div>
-      <div class="footnote">Si cambias de servidor, actualiza y vuelve a iniciar sesión.</div>
-    </div>
-
-    <div class="card">
-      <div class="section-title"><h2>Login</h2></div>
-      <div class="grid g2-50">
-        <div>
-          <label>Usuario (ADMIN)</label>
-          <input id="inAdminUser" value="admin" />
-          <label>Contraseña</label>
-          <input id="inAdminPass" type="password" placeholder="••••••" />
-          <div class="row" style="margin-top:8px">
-            <button id="btnLoginAdmin" class="btn acc">Entrar (ADMIN)</button>
-          </div>
-        </div>
-        <div>
-          <label>Usuario (CLIENTE)</label>
-          <input id="inClientUser" placeholder="cliente01" />
-          <label>Contraseña</label>
-          <input id="inClientPass" type="password" placeholder="••••••" />
-          <div class="row" style="margin-top:8px">
-            <button id="btnLoginClient" class="btn">Entrar (CLIENTE)</button>
-          </div>
-        </div>
-      </div>
-      <div id="loginTip" class="footnote">Arriba verás tu usuario/rol tras iniciar.</div>
-    </div>
-  </section>
 
   <!-- BIENVENIDA -->
   <section id="secWelcome" class="welcome hidden" style="margin-top:12px">
@@ -228,7 +195,7 @@
         <div><label>Banner URL</label><input id="cfg_panel_banner" placeholder="https://..."></div>
       </div>
 
-      <!-- Colores con picker -->
+      <!-- Colores -->
       <div class="grid g3" style="margin-top:6px">
         <div class="colorcell">
           <label>Color BG</label>
@@ -293,6 +260,7 @@
             <option value="apelaciones">Apelaciones</option>
           </select>
           <button id="btnAddTplButton" class="btn">Agregar</button>
+          <button id="btnNewButton" class="btn">Nuevo botón</button>
         </div>
       </div>
 
@@ -331,6 +299,7 @@
             <option value="apelacion">Apelación: Motivo + Por qué deberían aceptarla</option>
           </select>
           <button id="btnAddTplFields" class="btn">Agregar</button>
+          <button id="btnNewField" class="btn">Nuevo campo</button>
         </div>
       </div>
 
@@ -363,11 +332,24 @@
       <div class="footnote">“Publicar panel” guarda y ordena al bot repintar el panel en Discord.</div>
     </div>
 
-    <!-- DERECHA: Previews -->
+    <!-- DERECHA: Vista rápida -->
     <div class="grid g2-50">
       <div class="card">
-        <div class="section-title"><h2>Vista previa del panel</h2><span class="hint right">Discord</span></div>
-        <div id="livePreview"></div>
+        <div class="section-title"><h2>Vista rápida</h2><span class="hint right">Resumen</span></div>
+        <div id="livePreview" class="pv-wrap">
+          <div class="pv-sections">
+            <div class="pv-row">
+              <div class="pv-info">
+                <div class="pv-emoji">🎟️</div>
+                <div>
+                  <div class="pv-h">Ejemplo</div>
+                  <div class="pv-sub">Botón de muestra</div>
+                </div>
+              </div>
+              <button class="pv-btn">Abrir</button>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div class="card">
@@ -414,30 +396,43 @@
         <div class="small">
           <b>apiKey del último bot creado:</b>
           <div id="adm_apiKey_box" class="mono pill" style="margin-top:6px">—</div>
-          <div class="footnote">Pon esta <b>apiKey</b> en el <span class="kbd">.env</span> del bot:</div>
-          <div class="mono" style="margin-top:6px">
-            BOT_API_KEY=&lt;apiKey&gt;<br/>
-            API_BASE_URL=http://TU_BACKEND:3001<br/>
-            DISCORD_TOKEN=&lt;token_de_discord&gt;<br/>
-            GUILD_ID=&lt;opcional para seed&gt;
-          </div>
         </div>
       </div>
     </div>
   </section>
 </div>
 
+<!-- LOGIN OVERLAY -->
+<div id="loginOverlay" class="overlay">
+  <div class="login-card">
+    <div class="login-title">
+      <div class="dot" style="width:10px;height:10px"></div>
+      <h1>Iniciar sesión</h1>
+    </div>
+    <label>Usuario</label>
+    <input id="loginUser" placeholder="admin" />
+    <label>Contraseña</label>
+    <input id="loginPass" type="password" placeholder="••••••" />
+    <div class="seg">
+      <button id="btnLoginAdmin" class="btn acc">Entrar (ADMIN)</button>
+      <button id="btnLoginClient" class="btn">Entrar (CLIENTE)</button>
+    </div>
+    <div class="hint" style="margin-top:10px">Después de iniciar verás el panel completo. Cierra sesión arriba a la derecha.</div>
+  </div>
+</div>
+
 <div id="toasts"></div>
 
 <script type="module">
   import {
-    setBaseUrl, getBaseUrl, setToken, getToken, clearAll,
-    login, meBots, meGuilds,
+    setToken, getToken, clearAll,
+    login, loginUser,
+    meBots, meGuilds,
     getGuildRoles, getGuildChannels, getGuildConfig, saveGuildConfig, publishGuildPanel,
     adminCreateUser, createBot, listBots, assignBotOwner
   } from "./service.js";
 
-  // ==== helpers (únicos) ====
+  // ==== helpers ====
   const $ = (id)=>document.getElementById(id);
   const snooze=(ms)=>new Promise(r=>setTimeout(r,ms));
   function toast(msg, type=""){ const b=$("toasts"); const d=document.createElement("div");
@@ -445,26 +440,22 @@
     setTimeout(()=>{d.style.opacity="0";d.style.transform="translateY(-6px)";},2600);
     setTimeout(()=>b.removeChild(d),3000);
   }
-  async function req(path, { method="GET", body, token=getToken(), headers={} } = {}){
-    const res = await fetch(getBaseUrl()+path, {
-      method,
-      headers: { "Content-Type":"application/json", ...(token ? {Authorization:`Bearer ${token}`} : {}), ...headers },
-      body: body ? JSON.stringify(body) : undefined
-    });
-    const text = await res.text();
-    let data; try{ data = text ? JSON.parse(text) : null }catch{ data = text }
-    if(!res.ok) throw new Error(typeof data==="string" ? data : (data?.error||res.statusText));
-    return data;
+  // IDs seguros para campos (evita errores en Discord)
+  function slugify(s){
+    return String(s || "campo")
+      .toLowerCase()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+      .replace(/[^a-z0-9]+/g,"_")
+      .replace(/^_+|_+$/g,"")
+      .slice(0, 24);
   }
+  function newDraftId(prefix="draft"){ return `${prefix}_${Date.now().toString(36)}`; }
 
   // ==== refs ====
+  const tabsBox = $("tabsBox");
   const tabBot=$("tabBot"), tabAdmin=$("tabAdmin");
   const viewBot=$("viewBot"), viewAdmin=$("viewAdmin");
 
-  const inBaseUrl=$("inBaseUrl"), btnSaveBase=$("btnSaveBase"), connState=$("connState");
-  const inAdminUser=$("inAdminUser"), inAdminPass=$("inAdminPass");
-  const inClientUser=$("inClientUser"), inClientPass=$("inClientPass");
-  const btnLoginAdmin=$("btnLoginAdmin"), btnLoginClient=$("btnLoginClient");
   const btnLogout=$("btnLogout"), welcomeBadge=$("welcomeBadge"), secWelcome=$("secWelcome");
   const welcomeTitle=$("welcomeTitle"), roleBadge=$("roleBadge");
 
@@ -482,77 +473,94 @@
 
   const boxButtons=$("boxButtons"), btn_title=$("btn_title"), btn_sub=$("btn_sub"), btn_label=$("btn_label"), btn_emoji=$("btn_emoji"),
         btn_visible=$("btn_visible"), btn_category_sel=$("btn_category_sel"), btn_id_read=$("btn_id_read"),
-        btnSaveButton=$("btnSaveButton"), btnDelButton=$("btnDelButton"), tpl_buttons=$("tpl_buttons"), btnAddTplButton=$("btnAddTplButton");
+        btnSaveButton=$("btnSaveButton"), btnDelButton=$("btnDelButton"), tpl_buttons=$("tpl_buttons"), btnAddTplButton=$("btnAddTplButton"),
+        btnNewButton=$("btnNewButton");
 
   const boxFields=$("boxFields"), fld_type=$("fld_type"), fld_label=$("fld_label"), fld_ph=$("fld_ph"),
         fld_req=$("fld_req"), fld_max=$("fld_max"), btnSaveField=$("btnSaveField"), btnDelField=$("btnDelField"),
-        tpl_fields=$("tpl_fields"), btnAddTplFields=$("btnAddTplFields");
+        tpl_fields=$("tpl_fields"), btnAddTplFields=$("btnAddTplFields"), btnNewField=$("btnNewField");
 
   const btnLoadCfg=$("btnLoadCfg"), btnSaveCfg=$("btnSaveCfg"), btnPublish=$("btnPublish"), cfgMsg=$("cfgMsg");
   const livePreview=$("livePreview"), formPreview=$("formPreview");
 
-  // admin
-  const adm_u_user=$("adm_u_user"), adm_u_pass=$("adm_u_pass"), adm_u_isadmin=$("adm_u_isadmin"),
-        btnAdmCreateUser=$("btnAdmCreateUser"), adm_user_msg=$("adm_user_msg");
-  const adm_b_name=$("adm_b_name"), btnAdmCreateBot=$("btnAdmCreateBot"), btnAdmListBots=$("btnAdmListBots"),
-        adm_b_sel=$("adm_b_sel"), adm_b_owner=$("adm_b_owner"), btnAdmAssignOwner=$("btnAdmAssignOwner"),
-        adm_bot_msg=$("adm_bot_msg"), adm_apiKey_box=$("adm_apiKey_box");
+  // overlay login
+  const overlay=$("loginOverlay"), loginUserEl=$("loginUser"), loginPass=$("loginPass"),
+        btnLoginAdmin=$("btnLoginAdmin"), btnLoginClient=$("btnLoginClient");
 
   // ==== state ====
   let isAdmin=false, meName="";
   let currentBotId=null, currentGuildId=null, currentConfig=null;
   let selectedButtonIndex=-1, selectedFieldIndex=-1;
-  let currentFormKey="ticket_general"; // id interno del botón activo
+  let currentFormKey="ticket_general";
   let cachedRoles=[], cachedChannels=[];
 
-  // ==== tabs ====
+  // ==== gating ====
+  function isLogged(){
+    const t=getToken(); if(!t) return false;
+    try{ JSON.parse(atob(t.split(".")[1]||"")); return true; }catch{ return false; }
+  }
+  function gateUI(){
+    if(!isLogged()){
+      tabsBox.classList.add("locked");
+      overlay.classList.remove("hidden");
+      welcomeBadge.classList.add("hidden");
+      btnLogout.classList.add("hidden");
+      secWelcome.classList.add("hidden");
+      secBotsGuilds.classList.add("hidden");
+      viewBot.classList.add("hidden");
+      viewAdmin.classList.add("hidden");
+    }else{
+      tabsBox.classList.remove("locked");
+      overlay.classList.add("hidden");
+      welcomeBadge.classList.remove("hidden");
+      btnLogout.classList.remove("hidden");
+      secWelcome.classList.remove("hidden");
+      secBotsGuilds.classList.remove("hidden");
+      showTab("bot");
+    }
+  }
+
   function showTab(which){
-    if(which==="admin"){ tabAdmin.classList.add("active"); tabBot.classList.remove("active"); viewAdmin.classList.remove("hidden"); viewBot.classList.add("hidden"); }
-    else { tabBot.classList.add("active"); tabAdmin.classList.remove("active"); viewBot.classList.remove("hidden"); viewAdmin.classList.add("hidden"); }
+    if(!isLogged()){ toast("Inicia sesión primero","err"); return; }
+    if(which==="admin"){
+      if(!isAdmin){ toast("Solo para administradores","err"); return; }
+      tabAdmin.classList.add("active"); tabBot.classList.remove("active");
+      viewAdmin.classList.remove("hidden"); viewBot.classList.add("hidden");
+    }else{
+      tabBot.classList.add("active"); tabAdmin.classList.remove("active");
+      viewBot.classList.remove("hidden"); viewAdmin.classList.add("hidden");
+    }
   }
   tabBot.onclick=()=>showTab("bot");
   tabAdmin.onclick=()=>showTab("admin");
 
-  // ==== base url ====
-  inBaseUrl.value = getBaseUrl() || "http://localhost:3001";
-  btnSaveBase.onclick = async ()=>{
-    setBaseUrl(inBaseUrl.value.trim());
-    connState.textContent="guardado, probando…";
-    try{ await req("/health",{token:null}); connState.textContent="conectado"; }catch{ connState.textContent="no disponible"; }
-  };
-  (async()=>{try{await req("/health",{token:null});connState.textContent="conectado"}catch{connState.textContent="no disponible"}})();
+  btnLogout.onclick=()=>{ clearAll(); isAdmin=false; meName=""; tabAdmin.style.display=""; gateUI(); };
 
   // ==== auth ====
-  function decodeToken(){
-    const t=getToken(); if(!t) return null;
-    try{ return JSON.parse(atob(t.split(".")[1]||"")); }catch{return null}
+  function afterLogin(){
+    try{
+      const p = JSON.parse(atob(getToken().split(".")[1]||""));
+      meName=p.username||"usuario"; isAdmin=!!p.isAdmin;
+      welcomeTitle.innerHTML=`<b>Bienvenido, ${meName}</b>`;
+      welcomeBadge.textContent=`Hola, ${meName}`;
+      roleBadge.textContent=isAdmin?"ADMIN":"CLIENTE";
+      tabAdmin.style.display = isAdmin ? "" : "none";
+      gateUI();
+      loadMyBots();
+    }catch{}
   }
-  function renderAuth(){
-    const payload=decodeToken();
-    if(!payload){
-      $("welcomeBadge").classList.add("hidden"); btnLogout.classList.add("hidden");
-      secWelcome.classList.add("hidden"); secBotsGuilds.classList.add("hidden"); viewBot.classList.add("hidden"); viewAdmin.classList.add("hidden");
-      return;
-    }
-    meName=payload.username||"usuario"; isAdmin=!!payload.isAdmin;
-    welcomeBadge.textContent=`Hola, ${meName}`; roleBadge.textContent=isAdmin?"ADMIN":"CLIENTE";
-    welcomeTitle.innerHTML=`<b>Bienvenido, ${meName}</b>`;
-    $("welcomeBadge").classList.remove("hidden"); btnLogout.classList.remove("hidden");
-    secWelcome.classList.remove("hidden"); secBotsGuilds.classList.remove("hidden");
-    if(isAdmin){ tabAdmin.classList.remove("hidden"); } else { tabAdmin.classList.add("hidden"); }
-    showTab("bot"); viewBot.classList.remove("hidden");
-    loadMyBots();
-  }
-  btnLogout.onclick=()=>{ clearAll(); renderAuth(); };
 
   btnLoginAdmin.onclick=async()=>{ try{
-    const r=await login(inAdminUser.value.trim(), inAdminPass.value);
-    if(r?.token) setToken(r.token); renderAuth();
+    const r=await login((loginUserEl.value||"admin").trim(), loginPass.value);
+    if(r?.token){ setToken(r.token); afterLogin(); }
   }catch(e){ toast("Login admin: "+(e.message||e),"err"); } };
+
   btnLoginClient.onclick=async()=>{ try{
-    const r=await req("/api/auth/login_user",{method:"POST",token:null,body:{ username: inClientUser.value.trim(), password: inClientPass.value }});
-    if(r?.token) setToken(r.token); renderAuth();
+    const r=await loginUser(loginUserEl.value.trim(), loginPass.value);
+    if(r?.token){ setToken(r.token); afterLogin(); }
   }catch(e){ toast("Login cliente: "+(e.message||e),"err"); } };
+
+  loginPass.addEventListener("keydown",(ev)=>{ if(ev.key==="Enter") btnLoginAdmin.click(); });
 
   // ==== bots/guilds ====
   async function loadMyBots(){
@@ -620,35 +628,33 @@
   btnReloadRoles.onclick=loadRoles;
   btnReloadChannels.onclick=async()=>{ await loadChannels(); renderPreview(currentConfig); }
 
-  // ==== PREVIEW PANEL ====
+  // ==== PREVIEW PANEL (sin imagen) ====
   function renderPreview(cfg){
     if(!livePreview||!cfg) return;
     const accent=cfg.panel?.theme?.accent||"#6e57ff";
     const text=cfg.panel?.theme?.text||"#ffffff";
     const bg=cfg.panel?.theme?.bg||"#0f0f10";
+    livePreview.style.setProperty("--pv-accent", accent);
+    livePreview.style.setProperty("--pv-text", text);
+    livePreview.style.setProperty("--pv-bg", bg);
+
     const visibles=(cfg.buttons||[]).filter(b=>b.visible!==false).sort((a,b)=>(a.order||0)-(b.order||0));
     livePreview.innerHTML=`
-      <div class="pv-wrap" style="--pv-bg:${bg};--pv-text:${text};--pv-accent:${accent}">
-        <div class="pv-banner">
-          ${cfg.panel?.bannerUrl ? `<img src="${cfg.panel.bannerUrl}" alt="">` : ""}
-          <div class="pv-title">${cfg.panel?.title || cfg.brand?.name || "Panel de Tickets"}</div>
-        </div>
-        <div class="pv-sections">
-          ${visibles.map(b=>`
-            <div class="pv-row">
-              <div class="pv-info">
-                <div class="pv-emoji">${b.emoji||"🎟️"}</div>
-                <div>
-                  <div class="pv-h">${b.title||""}</div>
-                  <div class="pv-sub">${b.subtitle||""}</div>
-                </div>
+      <div class="pv-sections">
+        ${visibles.map(b=>`
+          <div class="pv-row">
+            <div class="pv-info">
+              <div class="pv-emoji">${b.emoji||"🎟️"}</div>
+              <div>
+                <div class="pv-h">${b.title||""}</div>
+                <div class="pv-sub">${b.subtitle||""}</div>
               </div>
-              <button class="pv-btn">${(b.emoji||"")} ${b.label||b.title||"Abrir"}</button>
             </div>
-          `).join("")}
-        </div>
+            <button class="pv-btn">${(b.emoji||"")} ${b.label||b.title||"Abrir"}</button>
+          </div>
+        `).join("")}
       </div>`;
-    renderFormPreview(); // mantener sincronizado
+    renderFormPreview();
   }
 
   // ==== PREVIEW FORM ====
@@ -679,14 +685,11 @@
     (currentConfig.buttons||[]).forEach((b,idx)=>{
       const d=document.createElement("div"); d.className="item"; d.draggable=true; d.dataset.idx=idx;
       d.innerHTML=`<span class="mono">${b.title||b.id}</span><span class="hint">${b.visible===false?"oculto":" "}</span>`;
-      // click select
       d.onclick=()=>selectButton(idx);
-      // drag
       d.addEventListener("dragstart",()=>{ d.classList.add("dragging"); });
       d.addEventListener("dragend",()=>{ d.classList.remove("dragging"); updateButtonsFromDOM(); });
       boxButtons.appendChild(d);
     });
-    // d&d host
     boxButtons.addEventListener("dragover",(e)=>{
       e.preventDefault();
       const dragging = boxButtons.querySelector(".dragging");
@@ -709,7 +712,7 @@
   function selectButton(idx){
     selectedButtonIndex=idx;
     const b=currentConfig.buttons[idx];
-    currentFormKey=b.id; // id interno del botón
+    currentFormKey=b.id;
     btn_id_read.textContent=b.id;
     btn_title.value=b.title||""; btn_sub.value=b.subtitle||""; btn_label.value=b.label||""; btn_emoji.value=b.emoji||""; btn_visible.checked=b.visible!==false;
     const catId=currentConfig?.categories?.[currentFormKey]||""; btn_category_sel.value=catId||"";
@@ -753,6 +756,20 @@
     try{
       const r=await getGuildConfig(currentGuildId);
       currentConfig=r;
+
+      // MIGRACIÓN: asegurar id en todos los campos existentes
+      (function fixMissingFieldIds(){
+        if (!currentConfig?.forms) return;
+        let changed = false;
+        for (const [key, form] of Object.entries(currentConfig.forms)) {
+          const arr = Array.isArray(form) ? form : (form?.fields || []);
+          for (const f of arr) {
+            if (!f.id) { f.id = slugify(f.label) || `f_${Date.now().toString(36)}`; changed = true; }
+          }
+          if (Array.isArray(form)) currentConfig.forms[key] = { title: "Formulario", fields: arr };
+        }
+        if (changed) console.log("⚙️ Migrados campos sin id");
+      })();
 
       cfg_brand_name.value=r.brand?.name||""; cfg_brand_icon.value=r.brand?.icon||"";
       cfg_panel_banner.value=r.panel?.bannerUrl||""; cfg_panel_title.value=r.panel?.title||"";
@@ -815,27 +832,64 @@
     cfgMsg.textContent="Publicación solicitada ✔"; await snooze(1200); cfgMsg.textContent="—"; toast("Señal enviada al bot","ok");
   }catch(e){ cfgMsg.textContent=e.message||"Error al publicar"; await snooze(1600); cfgMsg.textContent="—"; toast(String(e.message||e),"err"); } };
 
-  // botones CRUD
-  function ensureButtons(){
-    if(!currentConfig.buttons) currentConfig.buttons=[];
+  // ==== NUEVO / BORRADOR ====
+  function clearButtonEditorToDraft(){
+    selectedButtonIndex = -1;
+    btn_title.value = "";
+    btn_sub.value   = "";
+    btn_label.value = "";
+    btn_emoji.value = "";
+    btn_visible.checked = true;
+    btn_category_sel.value = "";
+    btn_id_read.textContent = "(nuevo)";
+    currentFormKey = newDraftId("draftbtn");
+    ensureFormObject(currentFormKey);
+    selectedFieldIndex = -1;
+    renderFields();
+    renderFormPreview();
+    renderPreview(currentConfig);
   }
+  function clearFieldEditorToNew(){
+    selectedFieldIndex = -1;
+    fld_type.value = "short";
+    fld_label.value = "";
+    fld_ph.value    = "";
+    fld_req.value   = "true";
+    fld_max.value   = "100";
+  }
+  btnNewButton.onclick = () => { clearButtonEditorToDraft(); toast("Editor listo para nuevo botón","ok"); };
+  btnNewField.onclick  = () => { ensureFormObject(currentFormKey); clearFieldEditorToNew(); toast("Editor de campo nuevo","ok"); };
+
+  // botones CRUD (creación real + mover form de borrador)
+  function ensureButtons(){ if(!currentConfig.buttons) currentConfig.buttons=[]; }
   btnSaveButton.onclick=()=>{
     ensureButtons();
-    // si no hay seleccionado, creamos nuevo id a partir del título
+
     if(selectedButtonIndex<0){
-      const newId = ("btn_"+(btn_title.value||"boton")).toLowerCase().replace(/\s+/g,"_").replace(/[^a-z0-9_]/g,"").slice(0,28) || ("btn_"+Date.now());
+      const base = (btn_title.value || "boton").toLowerCase().replace(/\s+/g,"_").replace(/[^a-z0-9_]/g,"");
+      const newId = (base ? `btn_${base}` : `btn_${Date.now()}`).slice(0,28);
+
       const b={ id:newId, order:(currentConfig.buttons.length+1), title:btn_title.value.trim(), subtitle:btn_sub.value.trim(), label:btn_label.value.trim(), emoji:btn_emoji.value.trim(), visible:btn_visible.checked };
       currentConfig.buttons.push(b);
       currentConfig.categories=currentConfig.categories||{}; currentConfig.categories[b.id]=btn_category_sel.value||null;
+
+      // mover formulario si venimos de borrador
+      if (String(currentFormKey||"").startsWith("draftbtn_")) {
+        ensureFormObject(currentFormKey);
+        const draftForm = currentConfig.forms[currentFormKey];
+        delete currentConfig.forms[currentFormKey];
+        currentConfig.forms[b.id] = draftForm || { title:"Formulario", fields:[] };
+      } else {
+        ensureFormObject(b.id);
+      }
+
       currentFormKey=b.id; selectedButtonIndex=currentConfig.buttons.length-1; btn_id_read.textContent=b.id;
     }else{
       const b=currentConfig.buttons[selectedButtonIndex];
       b.title=btn_title.value.trim(); b.subtitle=btn_sub.value.trim(); b.label=btn_label.value.trim(); b.emoji=btn_emoji.value.trim(); b.visible=btn_visible.checked;
       currentConfig.categories[currentFormKey]=btn_category_sel.value||null;
     }
-    // asegurar form del botón
-    ensureFormObject(currentFormKey);
-    renderButtons(); renderPreview(currentConfig);
+    renderButtons(); renderFields(); renderPreview(currentConfig);
     toast("Botón guardado","ok");
   };
   btnDelButton.onclick=()=>{
@@ -852,30 +906,48 @@
     currentConfig.categories[currentFormKey]=btn_category_sel.value||null;
   };
 
-  // plantillas botones
-  btnAddTplButton.onclick=()=>{
-    const v=tpl_buttons.value; if(!v) return;
-    const presets={
-      general:{ title:"Soporte general", subtitle:"Ayuda en general", label:"💬 Abrir ticket", emoji:"💬" },
-      compras:{ title:"Compras / Tienda", subtitle:"Pagos, pedidos y compras", label:"🛒 Soporte tienda", emoji:"🛒" },
-      reclamos:{ title:"Reclamos", subtitle:"Reporta un problema", label:"⚠️ Abrir reclamo", emoji:"⚠️" },
-      apelaciones:{ title:"Apelaciones", subtitle:"Solicita revisión de sanción", label:"📝 Apelar sanción", emoji:"📝" }
-    }[v];
-    if(!presets) return;
-    btn_title.value=presets.title; btn_sub.value=presets.subtitle; btn_label.value=presets.label; btn_emoji.value=presets.emoji;
-    selectedButtonIndex=-1; btn_id_read.textContent="(nuevo)";
+  // plantillas de botones
+  btnAddTplButton.onclick = () => {
+    const v = tpl_buttons.value;
+    if (!v) return;
+    clearButtonEditorToDraft();
+    const presets = {
+      general:   { title: "Soporte general", subtitle: "Ayuda en general", label: "💬 Soporte", emoji: "💬" },
+      compras:   { title: "Soporte compras", subtitle: "Pagos/Buycraft",   label: "🛒 Compras", emoji: "🛒" },
+      reclamos:  { title: "Reclamos",        subtitle: "Reporta al staff", label: "⚠️ Reclamo", emoji: "⚠️" },
+      apelaciones:{title: "Apelaciones",     subtitle: "Solicita revisión",label: "📩 Apelar",  emoji: "📩" }
+    };
+    const p = presets[v]; if (!p) return;
+    btn_title.value = p.title; btn_sub.value = p.subtitle; btn_label.value = p.label; btn_emoji.value = p.emoji;
+
+    ensureFormObject(currentFormKey);
+    currentConfig.forms[currentFormKey].fields.push(
+      { id: slugify("¿Nombre de usuario?"), type: "short", label: "¿Nombre de usuario?", placeholder: "Tu nick", required: true, maxLen: 100 },
+      { id: slugify("Describe tu problema"), type: "paragraph", label: "Describe tu problema", placeholder: "Cuéntanos brevemente…", required: true, maxLen: 1000 }
+    );
+    renderFields(); renderFormPreview(); renderPreview(currentConfig);
+    toast("Plantilla cargada. Ahora guarda el botón.","ok");
   };
 
-  // fields CRUD
+  // fields CRUD (con id garantizado)
   btnSaveField.onclick=()=>{
     ensureFormObject(currentFormKey);
+
+    const existing = selectedFieldIndex>=0
+      ? currentConfig.forms[currentFormKey].fields[selectedFieldIndex]
+      : null;
+
+    const id = existing?.id || slugify(fld_label.value) || `f_${Date.now().toString(36)}`;
+
     const field = {
+      id,
       type: fld_type.value,
       label: fld_label.value.trim() || (fld_type.value==="paragraph"?"Descripción":"Texto"),
       placeholder: fld_ph.value.trim(),
       required: fld_req.value==="true",
       maxLen: Number(fld_max.value)|| (fld_type.value==="paragraph"?1000:100)
     };
+
     if(selectedFieldIndex<0){
       currentConfig.forms[currentFormKey].fields.push(field);
       selectedFieldIndex=currentConfig.forms[currentFormKey].fields.length-1;
@@ -895,76 +967,49 @@
     const v=tpl_fields.value; if(!v) return;
     ensureFormObject(currentFormKey);
     const add=(arr)=>{ currentConfig.forms[currentFormKey].fields.push(...arr); renderFields(); renderFormPreview(); };
-    const short=(label,ph,req=true,max=100)=>({type:"short",label,placeholder:ph,required:req,maxLen:max});
-    const para=(label,ph,req=true,max=1000)=>({type:"paragraph",label,placeholder:ph,required:req,maxLen:max});
+    const short=(label,ph,req=true,max=100)=>({id: slugify(label), type:"short", label, placeholder:ph, required:req, maxLen:max});
+    const para =(label,ph,req=true,max=1000)=>({id: slugify(label), type:"paragraph", label, placeholder:ph, required:req, maxLen:max});
     const packs={
-      campos_basicos: [
-        short("¿Nombre de usuario?","Tu nick"),
-        para("Describe tu problema","Cuéntanos brevemente...")
-      ],
-      compras: [
-        short("ID/Pedido de compra","ABC123"),
-        short("Método de pago","Tarjeta/PayPal/etc."),
-        para("Pruebas (links o descripción)","Adjunta capturas o explica")
-      ],
-      reclamo_staff: [
-        short("Staff implicado","Nombre del staff"),
-        para("Evidencia","Explica y/o adjunta links")
-      ],
-      apelacion: [
-        short("¿Quién te sancionó?","Nombre/mod"),
-        para("¿Por qué deberían aceptarla?","Explica con detalle")
-      ]
+      campos_basicos: [ short("¿Nombre de usuario?","Tu nick"), para("Describe tu problema","Cuéntanos brevemente...") ],
+      compras: [ short("ID/Pedido de compra","ABC123"), short("Método de pago","Tarjeta/PayPal/etc."), para("Pruebas (links o descripción)","Adjunta capturas o explica") ],
+      reclamo_staff: [ short("Staff implicado","Nombre del staff"), para("Evidencia","Explica y/o adjunta links") ],
+      apelacion: [ short("¿Quién te sancionó?","Nombre/mod"), para("¿Por qué deberían aceptarla?","Explica con detalle") ]
     };
     add(packs[v]||[]);
   };
 
-  // ==== listeners ====
+  // escuchar cambios de color para preview
   [cfg_brand_name,cfg_brand_icon,cfg_panel_banner,cfg_panel_title,cfg_color_bg,cfg_color_accent,cfg_color_text].forEach(el=>{
     el.addEventListener("input",()=>{ collectConfig(); renderPreview(currentConfig); });
   });
 
   // ==== ADMIN ====
-  btnAdmCreateUser.onclick=async()=>{ try{
-    const r=await adminCreateUser({ username:adm_u_user.value.trim(), password:adm_u_pass.value, isAdmin:adm_u_isadmin.value==="true" });
-    adm_user_msg.textContent="Creado ✔"; toast("Usuario creado","ok"); await snooze(1000); adm_user_msg.textContent="—";
-  }catch(e){ adm_user_msg.textContent=e.message||"Error"; toast(String(e.message||e),"err"); } };
+  $("btnAdmCreateUser").onclick=async()=>{ try{
+    await adminCreateUser({ username:$("adm_u_user").value.trim(), password:$("adm_u_pass").value, isAdmin:$("adm_u_isadmin").value==="true" });
+    $("adm_user_msg").textContent="Creado ✔"; toast("Usuario creado","ok"); await snooze(1000); $("adm_user_msg").textContent="—";
+  }catch(e){ $("adm_user_msg").textContent=e.message||"Error"; toast(String(e.message||e),"err"); } };
 
-  btnAdmCreateBot.onclick=async()=>{ try{
-    const r=await createBot(adm_b_name.value.trim());
-    toast("Bot creado","ok"); adm_apiKey_box.textContent=r?.bot?.apiKey||"—";
+  $("btnAdmCreateBot").onclick=async()=>{ try{
+    const r=await createBot($("adm_b_name").value.trim());
+    toast("Bot creado","ok"); $("adm_apiKey_box").textContent=r?.bot?.apiKey||"—";
     await refreshBotsList();
   }catch(e){ toast(String(e.message||e),"err"); } };
 
   async function refreshBotsList(){
-    const r=await listBots(); adm_b_sel.innerHTML="";
-    (r.bots||[]).forEach(b=>{ const o=document.createElement("option"); o.value=b.id; o.textContent=`${b.name} (${b.id.slice(0,6)})`; adm_b_sel.appendChild(o); });
+    const r=await listBots(); $("adm_b_sel").innerHTML="";
+    (r.bots||[]).forEach(b=>{ const o=document.createElement("option"); o.value=b.id; o.textContent=`${b.name} (${b.id.slice(0,6)})`; $("adm_b_sel").appendChild(o); });
   }
-  btnAdmListBots.onclick=refreshBotsList;
+  $("btnAdmListBots").onclick=refreshBotsList;
 
-  btnAdmAssignOwner.onclick=async()=>{ try{
-    if(!adm_b_sel.value) return;
-    const r=await assignBotOwner(adm_b_sel.value, adm_b_owner.value.trim());
-    adm_bot_msg.textContent="Asignado ✔"; toast("Dueño asignado","ok"); await snooze(1000); adm_bot_msg.textContent="—";
-  }catch(e){ adm_bot_msg.textContent=e.message||"Error"; toast(String(e.message||e),"err"); } };
+  $("btnAdmAssignOwner").onclick=async()=>{ try{
+    const sel=$("adm_b_sel"); if(!sel.value) return;
+    await assignBotOwner(sel.value, $("adm_b_owner").value.trim());
+    $("adm_bot_msg").textContent="Asignado ✔"; toast("Dueño asignado","ok"); await snooze(1000); $("adm_bot_msg").textContent="—";
+  }catch(e){ $("adm_bot_msg").textContent=e.message||"Error"; toast(String(e.message||e),"err"); } };
 
   // ==== init ====
-  function initColorsMirror(){
-    // si el usuario edita el hex a mano, sincroniza el picker
-    [ [cfg_color_bg, cfg_color_bg_pick],
-      [cfg_color_accent, cfg_color_accent_pick],
-      [cfg_color_text, cfg_color_text_pick]
-    ].forEach(([hex,pick])=>{
-      hex.addEventListener("input", ()=>{ pick.value=toColor(hex.value); collectConfig(); renderPreview(currentConfig); });
-    });
-  }
-  initColorsMirror();
-
-  // base url check already done above
-  function init(){
-    renderAuth();
-  }
-  init();
+  if(isLogged()) afterLogin();
+  gateUI();
 </script>
 </body>
 </html>
