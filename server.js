@@ -29,19 +29,16 @@ const RAW_ORIGINS = (process.env.BASE_URL || "*")
   .filter(Boolean);
 
 function matchOrigin(origin, pattern) {
-  if (!origin) return true; // health checks / SSR internos
+  if (!origin) return true;
   if (pattern === "*") return true;
   if (pattern === origin) return true;
-
   try {
     const u = new URL(origin);
-    const host = u.hostname; // p.ej. usersaccess.netlify.app
-
-    // patrón tipo https://*.netlify.app
+    const host = u.hostname;
     const m = pattern.match(/^https?:\/\/\*\.(.+)$/i);
     if (m) {
       const schemeOk = origin.startsWith(pattern.startsWith("https") ? "https://" : "http://");
-      const domain = m[1]; // netlify.app
+      const domain = m[1];
       return schemeOk && (host === domain || host.endsWith(`.${domain}`));
     }
     return false;
@@ -83,20 +80,24 @@ await pool.query(`
   );
 `);
 
-// Helpers de KV
+// Helpers de KV (con stringify + ::jsonb)
 async function readJSON(name, fallback) {
   const { rows } = await pool.query("SELECT data FROM files WHERE name=$1", [name]);
   if (rows[0]?.data !== undefined) return rows[0].data;
+
   await pool.query(
-    "INSERT INTO files(name, data) VALUES ($1, $2) ON CONFLICT (name) DO NOTHING",
-    [name, fallback]
+    "INSERT INTO files(name, data) VALUES ($1, $2::jsonb) ON CONFLICT (name) DO NOTHING",
+    [name, JSON.stringify(fallback)]
   );
   return fallback;
 }
 async function writeJSON(name, val) {
+  const payload = JSON.stringify(val);
   await pool.query(
-    "INSERT INTO files(name, data) VALUES ($1, $2) ON CONFLICT (name) DO UPDATE SET data=$2, updated_at=now()",
-    [name, val]
+    `INSERT INTO files(name, data)
+     VALUES ($1, $2::jsonb)
+     ON CONFLICT (name) DO UPDATE SET data=$2::jsonb, updated_at=now()`,
+    [name, payload]
   );
 }
 
@@ -122,15 +123,17 @@ async function findUserByUsername(username) {
 function auth(req, res, next) {
   try {
     const h = req.headers.authorization || "";
-    const token = h.startsWith("Bearer ") ? h.slice(7) : null;
-    if (!token) return res.status(401).json({ error: "no token" });
-    const payload = jwt.verify(token, process.env.JWT_SECRET || "secret");
-    req.user = payload; // {uid, username, isAdmin}
-    next();
+    theToken: {
+      const token = h.startsWith("Bearer ") ? h.slice(7) : null;
+      if (!token) return res.status(401).json({ error: "no token" });
+      const payload = jwt.verify(token, process.env.JWT_SECRET || "secret");
+      req.user = payload; // {uid, username, isAdmin}
+      next();
+    }
   } catch { return res.status(401).json({ error: "invalid token" }); }
 }
-function ensureAdmin(req, res, next) {
-  if (!req.user?.isAdmin) return res.status(403).json({ error: "solo admin" });
+function ensureAdmin(req, _res, next) {
+  if (!req.user?.isAdmin) return next({ status: 403, message: "solo admin" });
   next();
 }
 const ensureOwner = wrap(async (req, res, next) => {
