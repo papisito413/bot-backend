@@ -29,21 +29,22 @@ const RAW_ORIGINS = (process.env.BASE_URL || "*")
   .filter(Boolean);
 
 function matchOrigin(origin, pattern) {
-  if (!origin) return true;                // para requests del propio Render/health
+  if (!origin) return true; // health checks / SSR internos
   if (pattern === "*") return true;
   if (pattern === origin) return true;
+
   try {
     const u = new URL(origin);
-    const host = u.hostname;               // p.ej. usersaccess.netlify.app
+    const host = u.hostname; // p.ej. usersaccess.netlify.app
 
+    // patrón tipo https://*.netlify.app
     const m = pattern.match(/^https?:\/\/\*\.(.+)$/i);
     if (m) {
       const schemeOk = origin.startsWith(pattern.startsWith("https") ? "https://" : "http://");
-      const domain = m[1];                 // p.ej. netlify.app
+      const domain = m[1]; // netlify.app
       return schemeOk && (host === domain || host.endsWith(`.${domain}`));
     }
-    // patrón exacto con esquema
-    return origin === pattern;
+    return false;
   } catch {
     return false;
   }
@@ -424,20 +425,30 @@ app.get("/api/bot/guilds/:guildId/publish", botAuth, wrap(async (req, res) => {
 
 // ===== Panel cliente: roles, canales y config (dueño o admin) =====
 app.get("/api/guilds/:guildId/roles", auth, ensureOwner, wrap(async (req, res) => {
-  const all = await readJSON(rolesFile, {}); res.json({ roles: all[req.params.guildId] || [] });
+  const all = await readJSON(rolesFile, {});
+  res.json({ roles: all[req.params.guildId] || [] });
 }));
+
 app.get("/api/guilds/:guildId/channels", auth, ensureOwner, wrap(async (req, res) => {
-  const all = await readJSON(channelsFile, {}); res.json({ channels: all[req.params.guildId] || [] });
+  const all = await readJSON(channelsFile, {});
+  res.json({ channels: all[req.params.guildId] || [] });
 }));
+
 app.get("/api/guilds/:guildId/config", auth, ensureOwner, wrap(async (req, res) => {
-  const cfgs = await readJSON(cfgFile, {}); res.json(cfgs[req.params.guildId] || defaultConfig());
-)));
+  const cfgs = await readJSON(cfgFile, {});
+  res.json(cfgs[req.params.guildId] || defaultConfig());
+}));
+
 app.put("/api/guilds/:guildId/config", auth, ensureOwner, wrap(async (req, res) => {
-  const cfgs = await readJSON(cfgFile, {}); cfgs[req.params.guildId] = req.body || {}; await writeJSON(cfgFile, cfgs);
+  const cfgs = await readJSON(cfgFile, {});
+  cfgs[req.params.guildId] = req.body || {};
+  await writeJSON(cfgFile, cfgs);
   res.json({ ok: true });
 }));
+
 app.post("/api/guilds/:guildId/publish", auth, ensureOwner, wrap(async (req, res) => {
-  const guildId = req.params.guildId; await setPublishFlag(guildId, req.user?.username || null);
+  const guildId = req.params.guildId;
+  await setPublishFlag(guildId, req.user?.username || null);
   res.json({ ok: true, requestedAt: Date.now() });
 }));
 
